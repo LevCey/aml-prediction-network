@@ -6,7 +6,7 @@ Built for **Canton Construct Ideathon** - Prediction Markets Track
 
 ---
 
-## 🎯 Problem Statement
+## Problem Statement
 
 Financial institutions lose **$180B annually** to compliance costs, with **95% false positive rates** in AML systems. Fraudsters share information across dark web networks, but banks cannot coordinate due to:
 
@@ -19,7 +19,7 @@ Financial institutions lose **$180B annually** to compliance costs, with **95% f
 
 ---
 
-## 💡 Solution
+## Solution
 
 **AML Prediction Network** leverages **Canton Network** to create a privacy-preserving, collaborative fraud detection system using **prediction markets**.
 
@@ -77,7 +77,7 @@ Financial institutions lose **$180B annually** to compliance costs, with **95% f
 
 ---
 
-## 🎲 How Prediction Markets Work
+## How Prediction Markets Work
 
 ### Example Scenario
 
@@ -124,7 +124,7 @@ Reputation scores updated
 
 ---
 
-## 🛡️ Regulatory Compliance
+## Regulatory Compliance
 
 | Regulation | Challenge | Our Solution |
 |------------|-----------|--------------|
@@ -136,7 +136,7 @@ Reputation scores updated
 
 ---
 
-## 💰 Business Model
+## Business Model
 
 ### Target Customers
 
@@ -160,7 +160,7 @@ Reputation scores updated
 
 ---
 
-## 🚀 MVP Features (Hackathon Scope)
+## MVP Features (Hackathon Scope)
 
 ### Core Functionality
 
@@ -206,7 +206,7 @@ Scene 3: Regulator Review
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 **Smart Contracts**
 - Daml 2.x (Canton Network SDK)
@@ -235,7 +235,7 @@ Scene 3: Regulator Review
 
 ---
 
-## 📊 Success Metrics
+## Success Metrics
 
 ### Hackathon Judges
 
@@ -254,7 +254,7 @@ Scene 3: Regulator Review
 
 ---
 
-## 🎯 Competitive Differentiation
+## Competitive Differentiation
 
 | Competitor | Limitation | Our Advantage |
 |------------|-----------|---------------|
@@ -265,7 +265,7 @@ Scene 3: Regulator Review
 
 ---
 
-## 🏆 Why We'll Win
+## Why We'll Win
 
 ### Innovation (20%)
 > "First privacy-preserving prediction market for AML compliance"
@@ -287,7 +287,7 @@ Scene 3: Regulator Review
 
 ---
 
-## 📋 Roadmap
+## Roadmap
 
 ### Week 1: Foundation (Dec 6-12)
 - [x] Project setup
@@ -311,7 +311,7 @@ Scene 3: Regulator Review
 
 ---
 
-## 👥 Team
+## Team
 
 **Solo Developer** (hackathon submission)
 
@@ -322,7 +322,7 @@ Open to collaboration! Looking for:
 
 ---
 
-## 📚 Resources
+## Resources
 
 **Regulatory References**
 - [FinCEN Section 314(b) Fact Sheet](https://www.fincen.gov/resources/statutes-and-regulations/314b-fact-sheet)
@@ -340,7 +340,7 @@ Open to collaboration! Looking for:
 
 ---
 
-## 📞 Contact
+## Contact
 
 **Hackathon**: Canton Construct Ideathon
 **Track**: Prediction Markets
@@ -352,12 +352,10 @@ Open to collaboration! Looking for:
 
 ---
 
-## 📄 License
+## License
 
 MIT License - Open source post-hackathon
 
 ---
 
-**"Fraudsters share info. Why can't banks?"**
-
-*Built with Canton Network - Making financial systems safer, together.*
+Built with Canton Network for the Canton Construct Ideathon 2025.
