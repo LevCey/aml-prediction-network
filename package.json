@@ -1,0 +1,51 @@
+{
+  "name": "aml-prediction-network",
+  "version": "0.1.0",
+  "description": "Privacy-preserving fraud detection using Canton Network prediction markets",
+  "main": "index.js",
+  "scripts": {
+    "setup": "bash scripts/setup-canton.sh",
+    "build:daml": "cd daml && daml build",
+    "deploy:contracts": "bash scripts/deploy-contracts.sh",
+    "seed": "bash scripts/seed-data.sh",
+    "demo": "bash scripts/run-demo.sh",
+    "frontend:dev": "cd frontend && npm run dev",
+    "frontend:build": "cd frontend && npm run build",
+    "backend:dev": "cd backend && npm run dev",
+    "backend:build": "cd backend && npm run build",
+    "test": "npm run test:daml && npm run test:frontend",
+    "test:daml": "cd daml && daml test",
+    "test:frontend": "cd frontend && npm test",
+    "clean": "rm -rf .daml daml/.daml contracts/build frontend/dist backend/dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/aml-prediction-network.git"
+  },
+  "keywords": [
+    "canton",
+    "daml",
+    "blockchain",
+    "aml",
+    "fraud-detection",
+    "prediction-markets",
+    "privacy",
+    "compliance",
+    "defi",
+    "fintech"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "workspaces": [
+    "frontend",
+    "backend"
+  ]
+}
