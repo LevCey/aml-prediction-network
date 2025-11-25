@@ -4,6 +4,8 @@
 
 Built for **Canton Construct Ideathon** - Prediction Markets Track
 
+**Live Demo:** [https://aml-prediction-network-frontend-jms.vercel.app](https://aml-prediction-network-frontend-jms.vercel.app)
+
 ---
 
 ## Problem Statement
