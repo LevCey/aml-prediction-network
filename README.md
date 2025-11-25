@@ -295,18 +295,6 @@ Open to collaboration! Looking for:
 
 ---
 
-## Contact
-
-**Hackathon**: Canton Construct Ideathon
-**Track**: Prediction Markets
-**Prize Target**: $2,000 (Top 10)
-
-**Community**
-- Discord: [discord.gg/CE4rxpd4xJ](https://discord.gg/CE4rxpd4xJ)
-- Email: cantoncoreacademy@sync.global
-
----
-
 ## License
 
 MIT License - Open source post-hackathon
