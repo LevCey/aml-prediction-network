@@ -279,18 +279,19 @@ Open to collaboration! Looking for:
 ## Resources
 
 **Regulatory References**
-- [FinCEN Section 314(b) Fact Sheet](https://www.fincen.gov/resources/statutes-and-regulations/314b-fact-sheet)
-- [EU 6th AML Directive](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32018L1673)
-- [Bank Secrecy Act Basics](https://www.fincen.gov/resources/statutes-regulations/guidance/bank-secrecy-act)
+- FinCEN Section 314(b) Fact Sheet
+- EU 6th AML Directive (Directive 2018/1673)
+- Bank Secrecy Act Guidelines
 
 **Technical Documentation**
-- [Canton Network Documentation](https://docs.canton.network/)
-- [Daml Smart Contracts](https://docs.daml.com/)
-- [Canton Privacy Features](https://docs.canton.network/concepts/privacy/)
+- [Daml Documentation](https://docs.daml.com/)
+- Canton Network Documentation
+- Privacy-preserving smart contracts
 
 **Market Research**
-- [AML Compliance Costs Report](https://www.acams.org/en/resources/aml-compliance-cost-study)
-- [Financial Crime Statistics](https://www.unodc.org/unodc/en/money-laundering/)
+- Global AML compliance costs: $180B+ annually
+- False positive rates in traditional systems: 95%+
+- Financial crime detection accuracy improvements with collaborative networks
 
 ---
 
