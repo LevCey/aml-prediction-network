@@ -265,52 +265,6 @@ Scene 3: Regulator Review
 
 ---
 
-## Why We'll Win
-
-### Innovation (20%)
-> "First privacy-preserving prediction market for AML compliance"
-
-### Impact (20%)
-> "$180B compliance market + FinCEN-backed + prevents human trafficking"
-
-### Clarity (20%)
-> Simple 3-step demo: Fraudster → Pattern shared → Instant block
-
-### Feasibility (15%)
-> Working prototype, realistic scope, clear roadmap
-
-### Relevance (15%)
-> Prediction Markets track = Perfect fit for Canton's core use case
-
-### Market Validation (10%)
-> FinCEN Section 314(b) + EU 6AMLD directives = proven demand
-
----
-
-## Roadmap
-
-### Week 1: Foundation (Dec 6-12)
-- [x] Project setup
-- [ ] Canton/Daml learning
-- [ ] Regulatory research (BSA, 314(b), GDPR)
-- [ ] Smart contract specification
-
-### Week 2-3: Development (Dec 13-26)
-- [ ] Daml prediction market contracts
-- [ ] Privacy layer implementation
-- [ ] Frontend dashboard (React)
-- [ ] Mock bank APIs
-- [ ] Demo scenario setup
-
-### Week 4: Polish (Dec 27 - Jan 5)
-- [ ] Video demo recording
-- [ ] Pitch deck creation
-- [ ] Documentation cleanup
-- [ ] Live deployment
-- [ ] Submission prep
-
----
-
 ## Team
 
 **Solo Developer** (hackathon submission)
