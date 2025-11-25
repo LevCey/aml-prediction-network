@@ -1,0 +1,215 @@
+module PredictionMarket where
+
+import DA.Time
+import DA.Map (Map)
+import DA.Map qualified as M
+import DA.Optional
+import DA.List (head)
+import Daml.Script
+
+-- Individual bank's prediction vote
+data BankVote = BankVote
+  with
+    confidence: Decimal  -- 0.0 to 1.0 (fraud probability)
+    stake: Decimal       -- Amount staked on this prediction
+    timestamp: Time
+  deriving (Eq, Show)
+
+-- Prediction market for a suspicious transaction
+template PredictionMarket
+  with
+    marketId: Text
+    transactionId: Text
+    creator: Party
+    participants: [Party]
+    deadline: Time
+    votes: Map Party BankVote
+    regulator: Party
+    isOpen: Bool
+  where
+    signatory creator
+    observer participants ++ [regulator]
+
+    -- Bank submits their fraud prediction
+    choice SubmitVote : ContractId PredictionMarket
+      with
+        voter: Party
+        confidence: Decimal
+        stake: Decimal
+      controller voter
+      do
+        -- Validate inputs
+        assertMsg "Confidence must be between 0 and 1" (confidence >= 0.0 && confidence <= 1.0)
+        assertMsg "Stake must be positive" (stake > 0.0)
+        assertMsg "Market must be open" isOpen
+
+        currentTime <- getTime
+        assertMsg "Deadline has passed" (currentTime < deadline)
+
+        -- Add vote
+        let vote = BankVote with
+              confidence
+              stake
+              timestamp = currentTime
+        let newVotes = M.insert voter vote votes
+
+        create this with votes = newVotes
+
+    -- Close market and calculate risk score
+    choice CloseMarket : (Decimal, ContractId RiskScore)
+      controller creator
+      do
+        currentTime <- getTime
+        assertMsg "Deadline not reached yet" (currentTime >= deadline)
+        assertMsg "Market must be open" isOpen
+
+        -- Calculate weighted risk score
+        let votesList = M.toList votes
+        let totalStake = sum [stake | (_, BankVote {stake}) <- votesList]
+        let weightedSum = sum [confidence * stake | (_, BankVote {confidence, stake}) <- votesList]
+        let riskScore = if totalStake > 0.0 then weightedSum / totalStake else 0.0
+
+        -- Create risk score contract
+        scoreId <- create RiskScore with
+          transactionId
+          score = riskScore
+          timestamp = currentTime
+          contributors = map fst votesList
+          regulator
+          actionTaken = None
+
+        -- Mark market as closed
+        create this with isOpen = False
+
+        return (riskScore, scoreId)
+
+
+-- Final risk score and recommended action
+template RiskScore
+  with
+    transactionId: Text
+    score: Decimal
+    timestamp: Time
+    contributors: [Party]
+    regulator: Party
+    actionTaken: Optional Text
+  where
+    signatory contributors
+    observer regulator
+
+    -- Determine action based on risk score
+    choice DetermineAction : ContractId RiskScore
+      controller (head contributors)  -- Any contributor can trigger
+      do
+        let action =
+              if score >= 0.8 then "BLOCK - High fraud probability"
+              else if score >= 0.6 then "REVIEW - Enhanced due diligence required"
+              else "APPROVE - Low fraud probability"
+
+        create this with actionTaken = Some action
+
+    -- Verify outcome (after investigation)
+    nonconsuming choice VerifyOutcome : ContractId OutcomeVerification
+      with
+        investigator: Party
+        actualFraud: Bool
+        notes: Text
+      controller investigator
+      do
+        outcomeTime <- getTime
+        create OutcomeVerification with
+          transactionId
+          predictedScore = score
+          actualFraud
+          notes
+          timestamp = outcomeTime
+          verifier = investigator
+          contributors
+
+
+-- Outcome verification after investigation
+template OutcomeVerification
+  with
+    transactionId: Text
+    predictedScore: Decimal
+    actualFraud: Bool
+    notes: Text
+    timestamp: Time
+    verifier: Party
+    contributors: [Party]
+  where
+    signatory verifier
+    observer contributors
+
+    -- This is used to update bank reputations
+
+
+-- Test script
+test_prediction_market = script do
+  -- Setup parties
+  bankA <- allocateParty "BankA"
+  bankB <- allocateParty "BankB"
+  bankC <- allocateParty "BankC"
+  regulator <- allocateParty "FinCEN"
+
+  now <- getTime
+  let deadline = addRelTime now (hours 24)
+
+  -- Create prediction market
+  marketId <- submit bankA do
+    createCmd PredictionMarket with
+      marketId = "MARKET_001"
+      transactionId = "TX_12345"
+      creator = bankA
+      participants = [bankA, bankB, bankC]
+      deadline
+      votes = M.empty
+      regulator
+      isOpen = True
+
+  -- Bank A votes: 85% fraud, stakes $200
+  marketId2 <- submit bankA do
+    exerciseCmd marketId SubmitVote with
+      voter = bankA
+      confidence = 0.85
+      stake = 200.0
+
+  -- Bank B votes: 75% fraud, stakes $150
+  marketId3 <- submit bankB do
+    exerciseCmd marketId2 SubmitVote with
+      voter = bankB
+      confidence = 0.75
+      stake = 150.0
+
+  -- Bank C votes: 70% fraud, stakes $100
+  marketId4 <- submit bankC do
+    exerciseCmd marketId3 SubmitVote with
+      voter = bankC
+      confidence = 0.70
+      stake = 100.0
+
+  -- Fast forward time past deadline
+  setTime deadline
+
+  -- Close market and calculate risk score
+  (riskScore, scoreId) <- submit bankA do
+    exerciseCmd marketId4 CloseMarket
+
+  -- Risk score should be weighted average
+  -- (0.85*200 + 0.75*150 + 0.70*100) / (200+150+100)
+  -- = (170 + 112.5 + 70) / 450 = 352.5 / 450 = 0.783
+  debug $ "Risk Score: " <> show riskScore
+  assertMsg "Risk score should be ~0.78" (riskScore >= 0.78 && riskScore <= 0.79)
+
+  -- Determine action
+  scoreId2 <- submit bankA do
+    exerciseCmd scoreId DetermineAction
+
+  -- Verify outcome (fraud was confirmed)
+  verificationId <- submit bankA do
+    exerciseCmd scoreId2 VerifyOutcome with
+      investigator = bankA
+      actualFraud = True
+      notes = "Confirmed fraud - same pattern as previous case"
+
+  return (riskScore, verificationId)

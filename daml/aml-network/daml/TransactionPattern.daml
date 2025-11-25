@@ -1,0 +1,114 @@
+module TransactionPattern where
+
+import DA.Time
+import Daml.Script
+
+-- Fraud pattern shared by banks (NO customer PII)
+template FraudPattern
+  with
+    patternId: Text
+    submitter: Party
+    patternHash: Text  -- SHA256 hash of pattern characteristics
+    characteristics: [Text]  -- e.g. ["structuring", "new_account", "high_risk_jurisdiction"]
+    timestamp: Time
+    observers: [Party]  -- Other banks + regulator
+    verified: Bool
+  where
+    signatory submitter
+    observer observers
+
+    -- Pattern can be verified by other banks
+    choice VerifyPattern : ContractId FraudPattern
+      with
+        verifier: Party
+      controller verifier
+      do
+        -- In production, verifier would check their own database
+        create this with verified = True
+
+    -- Pattern can be archived after certain time
+    choice ArchivePattern : ()
+      controller submitter
+      do
+        return ()
+
+
+-- Suspicious transaction submission (anonymized)
+template SuspiciousTransaction
+  with
+    transactionId: Text
+    reportingBank: Party
+    patternHash: Text  -- Links to FraudPattern
+    amount: Decimal
+    timestamp: Time
+    riskFactors: [Text]
+    observers: [Party]
+  where
+    signatory reportingBank
+    observer observers
+
+    -- Create prediction market for this transaction
+    choice CreatePredictionMarket : ContractId PredictionMarketProposal
+      with
+        participants: [Party]
+        deadline: Time
+      controller reportingBank
+      do
+        create PredictionMarketProposal with
+          transactionId
+          creator = reportingBank
+          participants
+          deadline
+          observers
+
+
+-- Proposal to create prediction market
+template PredictionMarketProposal
+  with
+    transactionId: Text
+    creator: Party
+    participants: [Party]
+    deadline: Time
+    observers: [Party]
+  where
+    signatory creator
+    observer observers ++ participants
+
+
+-- Test script
+test_fraud_pattern = script do
+  -- Setup parties
+  bankA <- allocateParty "BankA"
+  bankB <- allocateParty "BankB"
+  bankC <- allocateParty "BankC"
+  regulator <- allocateParty "FinCEN"
+
+  -- Bank A detects fraud pattern and shares it
+  now <- getTime
+  patternId <- submit bankA do
+    createCmd FraudPattern with
+      patternId = "PATTERN_001"
+      submitter = bankA
+      patternHash = "0x7a8f9b2c..."
+      characteristics = ["structuring", "new_account", "crypto_exchange"]
+      timestamp = now
+      observers = [bankB, bankC, regulator]
+      verified = False
+
+  -- Bank B verifies the pattern (they've seen it too)
+  patternId2 <- submit bankB do
+    exerciseCmd patternId VerifyPattern with
+      verifier = bankB
+
+  -- Bank A submits suspicious transaction
+  txId <- submit bankA do
+    createCmd SuspiciousTransaction with
+      transactionId = "TX_12345"
+      reportingBank = bankA
+      patternHash = "0x7a8f9b2c..."
+      amount = 9500.0
+      timestamp = now
+      riskFactors = ["amount_near_threshold", "new_account"]
+      observers = [bankB, bankC, regulator]
+
+  return (patternId2, txId)

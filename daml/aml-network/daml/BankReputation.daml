@@ -1,0 +1,205 @@
+module BankReputation where
+
+import DA.Time
+import Daml.Script
+
+-- Bank's reputation based on prediction accuracy
+template BankReputation
+  with
+    bank: Party
+    totalPredictions: Int
+    correctPredictions: Int
+    accuracy: Decimal
+    reputationScore: Decimal  -- 0.0 to 100.0
+    lastUpdated: Time
+    networkParticipants: [Party]
+  where
+    signatory bank
+    observer networkParticipants
+
+    -- Update reputation after outcome verification
+    choice UpdateReputation : ContractId BankReputation
+      with
+        wasCorrect: Bool
+        predictionConfidence: Decimal
+      controller bank
+      do
+        currentTime <- getTime
+        let newTotal = totalPredictions + 1
+        let newCorrect = if wasCorrect then correctPredictions + 1 else correctPredictions
+        let newAccuracy = intToDecimal newCorrect / intToDecimal newTotal
+
+        -- Calculate reputation score (0-100)
+        -- Higher accuracy + more predictions = better reputation
+        let experienceBonus = if newTotal > 10 then 10.0 else intToDecimal newTotal
+        let newReputation = (newAccuracy * 90.0) + experienceBonus
+
+        create this with
+          totalPredictions = newTotal
+          correctPredictions = newCorrect
+          accuracy = newAccuracy
+          reputationScore = newReputation
+          lastUpdated = currentTime
+
+    -- Query reputation (non-consuming, read-only)
+    nonconsuming choice GetReputation : (Decimal, Int, Int)
+      controller bank
+      do
+        return (reputationScore, correctPredictions, totalPredictions)
+
+
+-- Reputation-weighted voting power
+template VotingPower
+  with
+    bank: Party
+    baseStake: Decimal
+    reputationMultiplier: Decimal  -- 0.5x to 2.0x based on reputation
+    effectiveVotingPower: Decimal
+    networkParticipants: [Party]
+  where
+    signatory bank
+    observer networkParticipants
+
+    -- Calculate effective voting power
+    choice CalculateEffectiveVotingPower : ContractId VotingPower
+      with
+        reputation: Decimal  -- 0-100
+      controller bank
+      do
+        -- Convert reputation (0-100) to multiplier (0.5-2.0)
+        let multiplier =
+              if reputation >= 90.0 then 2.0      -- Elite: 2x power
+              else if reputation >= 75.0 then 1.5  -- Excellent: 1.5x power
+              else if reputation >= 50.0 then 1.0  -- Good: 1x power
+              else if reputation >= 25.0 then 0.75 -- Fair: 0.75x power
+              else 0.5                             -- Poor: 0.5x power
+
+        let effectivePower = baseStake * multiplier
+
+        create this with
+          reputationMultiplier = multiplier
+          effectiveVotingPower = effectivePower
+
+
+-- Network statistics (regulator view)
+template NetworkStatistics
+  with
+    regulator: Party
+    totalTransactions: Int
+    fraudDetected: Int
+    falsePositives: Int
+    trustedBanks: [Party]
+    timestamp: Time
+  where
+    signatory regulator
+
+    -- Update statistics
+    choice UpdateStatistics : ContractId NetworkStatistics
+      with
+        newTransaction: Bool
+        wasFraud: Bool
+        wasFalsePositive: Bool
+      controller regulator
+      do
+        currentTime <- getTime
+        create this with
+          totalTransactions = if newTransaction then totalTransactions + 1 else totalTransactions
+          fraudDetected = if wasFraud then fraudDetected + 1 else fraudDetected
+          falsePositives = if wasFalsePositive then falsePositives + 1 else falsePositives
+          timestamp = currentTime
+
+    -- Query network health
+    nonconsuming choice GetNetworkHealth : (Decimal, Decimal)
+      controller regulator
+      do
+        let detectionRate = if totalTransactions > 0
+                            then intToDecimal fraudDetected / intToDecimal totalTransactions
+                            else 0.0
+        let falsePositiveRate = if totalTransactions > 0
+                                then intToDecimal falsePositives / intToDecimal totalTransactions
+                                else 0.0
+        return (detectionRate, falsePositiveRate)
+
+
+-- Test script
+test_bank_reputation = script do
+  -- Setup parties
+  bankA <- allocateParty "BankA"
+  bankB <- allocateParty "BankB"
+  bankC <- allocateParty "BankC"
+  regulator <- allocateParty "FinCEN"
+
+  now <- getTime
+  let networkParticipants = [bankA, bankB, bankC]
+
+  -- Initialize Bank A's reputation
+  repId <- submit bankA do
+    createCmd BankReputation with
+      bank = bankA
+      totalPredictions = 0
+      correctPredictions = 0
+      accuracy = 0.0
+      reputationScore = 50.0  -- Start at 50
+      lastUpdated = now
+      networkParticipants
+
+  -- Bank A makes correct prediction
+  repId2 <- submit bankA do
+    exerciseCmd repId UpdateReputation with
+      wasCorrect = True
+      predictionConfidence = 0.85
+
+  -- Bank A makes another correct prediction
+  repId3 <- submit bankA do
+    exerciseCmd repId2 UpdateReputation with
+      wasCorrect = True
+      predictionConfidence = 0.90
+
+  -- Bank A makes incorrect prediction
+  repId4 <- submit bankA do
+    exerciseCmd repId3 UpdateReputation with
+      wasCorrect = False
+      predictionConfidence = 0.75
+
+  -- Query final reputation
+  (finalReputation, correct, total) <- submit bankA do
+    exerciseCmd repId4 GetReputation
+
+  debug $ "Bank A Reputation: " <> show finalReputation
+  debug $ "Correct: " <> show correct <> "/" <> show total
+
+  -- Should be 2 correct out of 3 = 66.7% accuracy
+  assertMsg "Should have 2 correct predictions" (correct == 2)
+  assertMsg "Should have 3 total predictions" (total == 3)
+
+  -- Calculate voting power
+  votingId <- submit bankA do
+    createCmd VotingPower with
+      bank = bankA
+      baseStake = 100.0
+      reputationMultiplier = 1.0
+      effectiveVotingPower = 100.0
+      networkParticipants
+
+  votingId2 <- submit bankA do
+    exerciseCmd votingId CalculateEffectiveVotingPower with
+      reputation = finalReputation
+
+  -- Initialize network statistics
+  statsId <- submit regulator do
+    createCmd NetworkStatistics with
+      regulator
+      totalTransactions = 0
+      fraudDetected = 0
+      falsePositives = 0
+      trustedBanks = [bankA]
+      timestamp = now
+
+  -- Update with new transaction
+  statsId2 <- submit regulator do
+    exerciseCmd statsId UpdateStatistics with
+      newTransaction = True
+      wasFraud = True
+      wasFalsePositive = False
+
+  return (repId4, votingId2, statsId2)
