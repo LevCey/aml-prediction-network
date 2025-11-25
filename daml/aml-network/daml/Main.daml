@@ -1,44 +1,203 @@
 module Main where
 
 import Daml.Script
+import DA.Time
+import DA.Map qualified as Map
 
-type AssetId = ContractId Asset
+import TransactionPattern
+import PredictionMarket
+import BankReputation
 
-template Asset
-  with
-    issuer : Party
-    owner  : Party
-    name   : Text
-  where
-    ensure name /= ""
-    signatory issuer
-    observer owner
-    choice Give : AssetId
-      with
-        newOwner : Party
-      controller owner
-      do create this with
-           owner = newOwner
+-- Complete AML Network demo scenario
+aml_network_demo : Script ()
+aml_network_demo = script do
+  -- Setup parties
+  bankA <- allocatePartyWithHint "BankA" (PartyIdHint "BankA")
+  bankB <- allocatePartyWithHint "BankB" (PartyIdHint "BankB")
+  bankC <- allocatePartyWithHint "BankC" (PartyIdHint "BankC")
+  regulator <- allocatePartyWithHint "FinCEN" (PartyIdHint "FinCEN")
 
-setup : Script AssetId
-setup = script do
--- user_setup_begin
-  alice <- allocatePartyWithHint "Alice" (PartyIdHint "Alice")
-  bob <- allocatePartyWithHint "Bob" (PartyIdHint "Bob")
-  aliceId <- validateUserId "alice"
-  bobId <- validateUserId "bob"
-  createUser (User aliceId (Some alice)) [CanActAs alice]
-  createUser (User bobId (Some bob)) [CanActAs bob]
--- user_setup_end
+  -- Setup users (for UI access)
+  bankAId <- validateUserId "banka"
+  bankBId <- validateUserId "bankb"
+  bankCId <- validateUserId "bankc"
+  regulatorId <- validateUserId "fincen"
 
-  aliceTV <- submit alice do
-    createCmd Asset with
-      issuer = alice
-      owner = alice
-      name = "TV"
+  createUser (User bankAId (Some bankA)) [CanActAs bankA]
+  createUser (User bankBId (Some bankB)) [CanActAs bankB]
+  createUser (User bankCId (Some bankC)) [CanActAs bankC]
+  createUser (User regulatorId (Some regulator)) [CanActAs regulator]
 
-  bobTV <- submit alice do
-    exerciseCmd aliceTV Give with newOwner = bob
+  now <- getTime
+  let deadline = addRelTime now (hours 24)
+  let observers = [bankA, bankB, bankC, regulator]
 
-  submit bob do
-    exerciseCmd bobTV Give with newOwner = alice
+  -- SCENE 1: Bank A detects fraud pattern
+  debug "=== SCENE 1: Bank A Detects Fraud ==="
+
+  patternId <- submit bankA do
+    createCmd FraudPattern with
+      patternId = "PATTERN_STRUCTURING_001"
+      submitter = bankA
+      patternHash = "0x7a8f9b2c4d1e3f5a6b8c9d0e1f2a3b4c"
+      characteristics = ["structuring", "new_account", "high_risk_jurisdiction", "crypto_exchange"]
+      timestamp = now
+      observers = [bankB, bankC, regulator]
+      verified = False
+
+  debug "Pattern submitted and shared with network"
+
+  -- Bank B verifies pattern
+  patternId2 <- submit bankB do
+    exerciseCmd patternId VerifyPattern with
+      verifier = bankB
+
+  debug "Pattern verified by Bank B"
+
+  -- SCENE 2: Fraudster tries Bank B
+  debug "=== SCENE 2: Same Fraudster Attempts Transaction at Bank B ==="
+
+  txId <- submit bankB do
+    createCmd SuspiciousTransaction with
+      transactionId = "TX_9500_CRYPTO"
+      reportingBank = bankB
+      patternHash = "0x7a8f9b2c4d1e3f5a6b8c9d0e1f2a3b4c"
+      amount = 9500.0
+      timestamp = now
+      riskFactors = ["amount_near_threshold", "new_account", "pattern_match"]
+      observers = [bankA, bankC, regulator]
+
+  debug "Suspicious transaction flagged"
+
+  -- SCENE 3: Create prediction market
+  debug "=== SCENE 3: Prediction Market Created ==="
+
+  marketId <- submit bankB do
+    createCmd PredictionMarket with
+      marketId = "MARKET_TX_9500"
+      transactionId = "TX_9500_CRYPTO"
+      creator = bankB
+      participants = [bankA, bankB, bankC]
+      deadline
+      votes = Map.empty
+      regulator
+      isOpen = True
+
+  debug "Prediction market is now open for voting"
+
+  -- SCENE 4: Banks submit votes
+  debug "=== SCENE 4: Banks Vote ==="
+
+  -- Bank A: High confidence (they just dealt with this fraudster!)
+  marketId2 <- submit bankA do
+    exerciseCmd marketId SubmitVote with
+      voter = bankA
+      confidence = 0.85
+      stake = 200.0
+  debug "Bank A voted: 85% fraud, $200 stake"
+
+  -- Bank B: Medium-high confidence
+  marketId3 <- submit bankB do
+    exerciseCmd marketId2 SubmitVote with
+      voter = bankB
+      confidence = 0.75
+      stake = 150.0
+  debug "Bank B voted: 75% fraud, $150 stake"
+
+  -- Bank C: Medium confidence
+  marketId4 <- submit bankC do
+    exerciseCmd marketId3 SubmitVote with
+      voter = bankC
+      confidence = 0.70
+      stake = 100.0
+  debug "Bank C voted: 70% fraud, $100 stake"
+
+  -- SCENE 5: Close market and calculate risk score
+  debug "=== SCENE 5: Market Closed & Risk Score Calculated ==="
+
+  setTime deadline
+
+  (riskScore, scoreId) <- submit bankB do
+    exerciseCmd marketId4 CloseMarket
+
+  debug $ "Weighted Risk Score: " <> show riskScore <> " (78.3%)"
+
+  -- SCENE 6: Determine action
+  debug "=== SCENE 6: Action Determined ==="
+
+  scoreId2 <- submit bankA do
+    exerciseCmd scoreId DetermineAction
+
+  debug "Action: REVIEW - Enhanced due diligence required"
+
+  -- SCENE 7: Investigation confirms fraud
+  debug "=== SCENE 7: Fraud Confirmed ==="
+
+  verificationId <- submit bankB do
+    exerciseCmd scoreId2 VerifyOutcome with
+      investigator = bankB
+      actualFraud = True
+      notes = "Confirmed: Same fraudster from Bank A report"
+
+  debug "Outcome verified - Banks' predictions were correct!"
+
+  -- SCENE 8: Update bank reputations
+  debug "=== SCENE 8: Bank Reputations Updated ==="
+
+  -- Initialize reputations
+  repA <- submit bankA do
+    createCmd BankReputation with
+      bank = bankA
+      totalPredictions = 0
+      correctPredictions = 0
+      accuracy = 0.0
+      reputationScore = 50.0
+      lastUpdated = now
+      networkParticipants = observers
+
+  repB <- submit bankB do
+    createCmd BankReputation with
+      bank = bankB
+      totalPredictions = 0
+      correctPredictions = 0
+      accuracy = 0.0
+      reputationScore = 50.0
+      lastUpdated = now
+      networkParticipants = observers
+
+  -- Update after correct prediction
+  repA2 <- submit bankA do
+    exerciseCmd repA UpdateReputation with
+      wasCorrect = True
+      predictionConfidence = 0.85
+
+  repB2 <- submit bankB do
+    exerciseCmd repB UpdateReputation with
+      wasCorrect = True
+      predictionConfidence = 0.75
+
+  (repScoreA, correctA, totalA) <- submit bankA do
+    exerciseCmd repA2 GetReputation
+
+  debug $ "Bank A Reputation: " <> show repScoreA
+
+  -- Initialize network statistics
+  statsId <- submit regulator do
+    createCmd NetworkStatistics with
+      regulator
+      totalTransactions = 1
+      fraudDetected = 1
+      falsePositives = 0
+      trustedBanks = [bankA, bankB]
+      timestamp = now
+
+  (detectionRate, fpRate) <- submit regulator do
+    exerciseCmd statsId GetNetworkHealth
+
+  debug $ "Network Detection Rate: " <> show detectionRate
+  debug $ "Network False Positive Rate: " <> show fpRate
+
+  debug "=== DEMO COMPLETE ==="
+  debug "Bank B saved $9,500 thanks to Bank A's shared pattern"
+
+  return ()

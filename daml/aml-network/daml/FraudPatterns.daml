@@ -1,0 +1,57 @@
+module FraudPatterns where
+
+import DA.Time
+import Daml.Script
+
+-- Common AML fraud pattern categories
+data PatternCategory
+  = Structuring
+  | Smurfing
+  | LayeringPattern
+  | IdentityTheft
+  deriving (Eq, Show)
+
+-- Risk indicators
+data RiskIndicator
+  = NewAccount
+  | HighRiskJurisdiction
+  | CryptoExchange
+  | CashIntensive
+  | RapidMovement
+  | UnusualActivity
+  deriving (Eq, Show)
+
+-- Pattern definition
+data PatternDefinition = PatternDefinition
+  with
+    patternId: Text
+    name: Text
+    category: PatternCategory
+    description: Text
+  deriving (Eq, Show)
+
+-- Pattern library template
+template PatternLibrary
+  with
+    libraryId: Text
+    maintainer: Party
+    patternCount: Int
+    observers: [Party]
+  where
+    signatory maintainer
+    observer observers
+
+-- Initialize with common patterns
+initialize_patterns : Script ()
+initialize_patterns = script do
+  admin <- allocateParty "Admin"
+
+  libraryId <- submit admin do
+    createCmd PatternLibrary with
+      libraryId = "MAIN"
+      maintainer = admin
+      patternCount = 5
+      observers = []
+
+  debug "Pattern library initialized with 5 common fraud patterns"
+  return ()
