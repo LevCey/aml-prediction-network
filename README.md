@@ -6,6 +6,10 @@ Built for **Canton Construct Ideathon** - Prediction Markets Track
 
 **Live Demo:** [https://aml-prediction-network.vercel.app](https://aml-prediction-network.vercel.app)
 
+**Video:** [https://youtu.be/1zIegcrLfaE](https://youtu.be/1zIegcrLfaE)
+
+![Dashboard Screenshot](docs/images/dashboard-screenshot.png)
+
 ---
 
 ## Problem Statement
