@@ -1,4 +1,8 @@
 # AML Prediction Network
+<p>
+    <strong>🏆 Canton Construct 2025 - Prediction Markets Track Winner/Finalist</strong><br>
+    Selected for <em>Canton Catalyst Mentorship Program 2026</em>
+  </p>
 
 **Privacy-Preserving Fraud Detection for Financial Institutions**
 
