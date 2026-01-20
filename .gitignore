@@ -56,3 +56,4 @@ lerna-debug.log*
 tmp/
 temp/
 *.tmp    
+docs/
