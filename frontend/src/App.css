@@ -750,3 +750,61 @@ body {
 .alert-text {
   font-size: 0.95rem;
 }
+
+
+/* Compliance Breakdown */
+.compliance-breakdown {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+
+.compliance-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 20px;
+}
+
+.compliance-column h4 {
+  margin-bottom: 12px;
+  font-size: 1rem;
+}
+
+.shared-title {
+  color: #27ae60;
+}
+
+.not-shared-title {
+  color: #e74c3c;
+}
+
+.compliance-column ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.compliance-column li {
+  padding: 8px 0;
+  border-bottom: 1px solid #333;
+  color: #ccc;
+  font-size: 0.9rem;
+}
+
+.compliance-column li:last-child {
+  border-bottom: none;
+}
+
+.compliance-badges {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.compliance-badges .badge {
+  background: #27ae60;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.85rem;
+}

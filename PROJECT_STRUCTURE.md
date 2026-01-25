@@ -6,11 +6,9 @@ aml-prediction-network/
 ├── daml/aml-network/              # Daml smart contracts
 │   ├── daml/
 │   │   ├── Main.daml              # Test scenarios & setup
-│   │   ├── PredictionMarket.daml  # Core voting mechanism
+│   │   ├── PredictionMarket.daml  # Core voting + SAR auto-filing
 │   │   ├── BankReputation.daml    # Accuracy tracking & voting power
-│   │   ├── TransactionPattern.daml # Fraud patterns & suspicious tx
-│   │   ├── FraudPatterns.daml     # Pattern definitions
-│   │   └── SimplePrediction.daml  # Simplified prediction (demo)
+│   │   └── TransactionPattern.daml # Fraud patterns & suspicious tx
 │   ├── daml.yaml                  # Daml project config
 │   └── .daml/dist/                # Compiled .dar files
 │
@@ -25,10 +23,7 @@ aml-prediction-network/
 │   ├── demo-scenario.md           # Demo script for presentations
 │   ├── images/                    # Screenshots & diagrams
 │   ├── medium/                    # Blog articles
-│   ├── mentor/                    # Mentor meeting notes
 │   └── chat/                      # Chat history backups
-│
-├── scripts/                        # Utility scripts
 │
 ├── README.md                       # Project overview
 ├── ROADMAP.md                      # Development roadmap
@@ -40,7 +35,7 @@ aml-prediction-network/
 
 | Contract | Purpose |
 |----------|---------|
-| **PredictionMarket.daml** | Banks vote on fraud probability with stakes |
+| **PredictionMarket.daml** | Banks vote on fraud probability, SAR auto-filing |
 | **BankReputation.daml** | Tracks accuracy, adjusts voting power |
 | **TransactionPattern.daml** | FraudPattern + SuspiciousTransaction templates |
 | **Main.daml** | Test scenarios and network setup |

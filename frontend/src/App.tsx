@@ -92,20 +92,8 @@ function App() {
 }
 
 function DashboardView() {
-  const highRiskTx = mockTransactions.find(tx => tx.riskScore >= 0.8);
-
   return (
     <div className="dashboard">
-      {highRiskTx && (
-        <div className="alert-banner">
-          <span className="alert-icon">🚨</span>
-          <span className="alert-text">
-            <strong>HIGH RISK ALERT:</strong> Transaction {highRiskTx.id} scored {(highRiskTx.riskScore * 100).toFixed(0)}% - 
-            Auto-blocked & SAR filed
-          </span>
-        </div>
-      )}
-
       <h2>Transaction Monitoring</h2>
 
       <div className="stats-grid">
@@ -388,6 +376,35 @@ function RegulatorView() {
       <div className="compliance-note">
         <strong>🔒 Privacy Preserved:</strong> Regulator sees actions and outcomes, but NO customer PII is exposed. 
         All data is anonymized and compliant with BSA Section 314(b) and GDPR.
+      </div>
+
+      <div className="regulator-section compliance-breakdown">
+        <h3>🔐 Compliance Breakdown</h3>
+        <div className="compliance-grid">
+          <div className="compliance-column">
+            <h4 className="shared-title">✓ What IS Shared</h4>
+            <ul>
+              <li>Behavioral patterns (hashed)</li>
+              <li>Risk scores (aggregated)</li>
+              <li>Fraud outcomes</li>
+              <li>Audit trail</li>
+            </ul>
+          </div>
+          <div className="compliance-column">
+            <h4 className="not-shared-title">✗ What is NOT Shared</h4>
+            <ul>
+              <li>Customer names</li>
+              <li>Account numbers</li>
+              <li>Transaction details</li>
+              <li>Bank-specific PII</li>
+            </ul>
+          </div>
+        </div>
+        <div className="compliance-badges">
+          <span className="badge">BSA ✓</span>
+          <span className="badge">GDPR ✓</span>
+          <span className="badge">314(b) ✓</span>
+        </div>
       </div>
     </div>
   );
