@@ -3,6 +3,7 @@ module Main where
 import Daml.Script
 import DA.Time
 import DA.Map qualified as Map
+import DA.Optional (isSome)
 
 import TransactionPattern
 import PredictionMarket
@@ -125,10 +126,11 @@ aml_network_demo = script do
   -- SCENE 6: Determine action
   debug "=== SCENE 6: Action Determined ==="
 
-  scoreId2 <- submit bankA do
+  (scoreId2, sarOpt) <- submit bankA do
     exerciseCmd scoreId DetermineAction
 
-  debug "Action: REVIEW - Enhanced due diligence required"
+  debug $ "Action: REVIEW - Enhanced due diligence required"
+  debug $ "SAR auto-filed: " <> show (isSome sarOpt)
 
   -- SCENE 7: Investigation confirms fraud
   debug "=== SCENE 7: Fraud Confirmed ==="

@@ -77,11 +77,33 @@ template PredictionMarket
           contributors = map fst votesList
           regulator
           actionTaken = None
+          sarFiled = False
 
         -- Mark market as closed
         create this with isOpen = False
 
         return (riskScore, scoreId)
+
+
+-- SAR (Suspicious Activity Report) for regulatory filing
+template SARReport
+  with
+    sarId: Text
+    transactionId: Text
+    riskScore: Decimal
+    filingBank: Party
+    regulator: Party
+    filedAt: Time
+    status: Text  -- PENDING, SUBMITTED, ACKNOWLEDGED
+  where
+    signatory filingBank
+    observer regulator
+
+    -- Regulator acknowledges receipt
+    choice AcknowledgeSAR : ContractId SARReport
+      controller regulator
+      do
+        create this with status = "ACKNOWLEDGED"
 
 
 -- Final risk score and recommended action
@@ -93,20 +115,40 @@ template RiskScore
     contributors: [Party]
     regulator: Party
     actionTaken: Optional Text
+    sarFiled: Bool
   where
     signatory contributors
     observer regulator
 
-    -- Determine action based on risk score
-    choice DetermineAction : ContractId RiskScore
-      controller (head contributors)  -- Any contributor can trigger
+    -- Determine action based on risk score (auto-files SAR if >= 0.8)
+    choice DetermineAction : (ContractId RiskScore, Optional (ContractId SARReport))
+      controller (head contributors)
       do
+        currentTime <- getTime
         let action =
               if score >= 0.8 then "BLOCK - High fraud probability"
               else if score >= 0.6 then "REVIEW - Enhanced due diligence required"
               else "APPROVE - Low fraud probability"
 
-        create this with actionTaken = Some action
+        -- Auto-file SAR if high risk
+        sarId <- if score >= 0.8 then do
+          sar <- create SARReport with
+            sarId = "SAR-" <> transactionId
+            transactionId
+            riskScore = score
+            filingBank = head contributors
+            regulator
+            filedAt = currentTime
+            status = "SUBMITTED"
+          return (Some sar)
+        else
+          return None
+
+        riskScoreId <- create this with 
+          actionTaken = Some action
+          sarFiled = score >= 0.8
+
+        return (riskScoreId, sarId)
 
     -- Verify outcome (after investigation)
     nonconsuming choice VerifyOutcome : ContractId OutcomeVerification
@@ -201,9 +243,12 @@ test_prediction_market = script do
   debug $ "Risk Score: " <> show riskScore
   assertMsg "Risk score should be ~0.78" (riskScore >= 0.78 && riskScore <= 0.79)
 
-  -- Determine action
-  scoreId2 <- submit bankA do
+  -- Determine action (will auto-file SAR since score > 0.8)
+  (scoreId2, sarOpt) <- submit bankA do
     exerciseCmd scoreId DetermineAction
+
+  -- Verify SAR was filed (score was ~0.78, so no SAR)
+  debug $ "SAR filed: " <> show sarOpt
 
   -- Verify outcome (fraud was confirmed)
   verificationId <- submit bankA do

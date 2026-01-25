@@ -10,7 +10,8 @@
 
 **Video:** [https://youtu.be/OnXVF5nY2yI](https://youtu.be/OnXVF5nY2yI)
 
-![Dashboard Screenshot](docs/images/dashboard-screenshot.png)
+![Dashboard Screenshot](assets/images/dashboard-screenshot.png)
+
 
 ---
 
