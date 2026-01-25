@@ -106,6 +106,21 @@ template SARReport
         create this with status = "ACKNOWLEDGED"
 
 
+-- Audit log entry for compliance tracking
+template AuditLog
+  with
+    logId: Text
+    transactionId: Text
+    action: Text        -- PATTERN_SHARED, VOTE_SUBMITTED, MARKET_CLOSED, SAR_FILED, etc.
+    actor: Party
+    timestamp: Time
+    details: Text
+    regulator: Party
+  where
+    signatory actor
+    observer regulator
+
+
 -- Final risk score and recommended action
 template RiskScore
   with
@@ -140,6 +155,15 @@ template RiskScore
             regulator
             filedAt = currentTime
             status = "SUBMITTED"
+          -- Log SAR filing
+          create AuditLog with
+            logId = "LOG-SAR-" <> transactionId
+            transactionId
+            action = "SAR_FILED"
+            actor = head contributors
+            timestamp = currentTime
+            details = "Auto-filed SAR due to risk score " <> show score
+            regulator
           return (Some sar)
         else
           return None
@@ -258,3 +282,63 @@ test_prediction_market = script do
       notes = "Confirmed fraud - same pattern as previous case"
 
   return (riskScore, verificationId)
+
+
+-- Test SAR auto-filing with high risk score
+test_sar_auto_filing = script do
+  bankA <- allocateParty "BankA"
+  bankB <- allocateParty "BankB"
+  regulator <- allocateParty "FinCEN"
+
+  now <- getTime
+  let deadline = addRelTime now (hours 1)
+
+  -- Create market
+  marketId <- submit bankA do
+    createCmd PredictionMarket with
+      marketId = "HIGH_RISK_001"
+      transactionId = "TX_SUSPICIOUS"
+      creator = bankA
+      participants = [bankA, bankB]
+      deadline
+      votes = M.empty
+      regulator
+      isOpen = True
+
+  -- Both banks vote HIGH fraud (90%+)
+  marketId2 <- submit bankA do
+    exerciseCmd marketId SubmitVote with
+      voter = bankA
+      confidence = 0.95
+      stake = 100.0
+
+  marketId3 <- submit bankB do
+    exerciseCmd marketId2 SubmitVote with
+      voter = bankB
+      confidence = 0.90
+      stake = 100.0
+
+  setTime deadline
+
+  -- Close market - score will be 92.5%
+  (riskScore, scoreId) <- submit bankA do
+    exerciseCmd marketId3 CloseMarket
+
+  debug $ ">>> Risk Score: " <> show riskScore
+
+  -- Determine action - should auto-file SAR!
+  (scoreId2, sarOpt) <- submit bankA do
+    exerciseCmd scoreId DetermineAction
+
+  debug $ ">>> SAR Auto-Filed: " <> show (isSome sarOpt)
+  assertMsg "SAR should be filed for score >= 0.8" (isSome sarOpt)
+
+  -- Regulator acknowledges SAR
+  case sarOpt of
+    Some sarId -> do
+      sarAck <- submit regulator do
+        exerciseCmd sarId AcknowledgeSAR
+      debug ">>> Regulator acknowledged SAR"
+    None -> debug "No SAR filed"
+
+  return riskScore

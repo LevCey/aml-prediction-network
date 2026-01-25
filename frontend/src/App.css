@@ -515,3 +515,238 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* SAR Alert Styles */
+.sar-alert {
+  margin-top: 12px;
+  padding: 12px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border: 1px solid #e74c3c;
+  border-radius: 8px;
+  border-left: 4px solid #e74c3c;
+}
+
+.sar-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.sar-icon {
+  font-size: 1.2rem;
+}
+
+.sar-title {
+  font-weight: 600;
+  color: #e74c3c;
+  font-size: 0.95rem;
+}
+
+.sar-details {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: #a0a0a0;
+}
+
+.sar-status {
+  font-weight: 600;
+}
+
+.sar-status.acknowledged {
+  color: #27ae60;
+}
+
+.sar-status.submitted {
+  color: #f39c12;
+}
+
+.sar-status.pending {
+  color: #3498db;
+}
+
+
+/* Regulator View Styles */
+.regulator-view {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.regulator-subtitle {
+  color: #888;
+  margin-bottom: 24px;
+}
+
+.regulator-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.regulator-section {
+  background: #1e1e2e;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.regulator-section h3 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  color: #fff;
+}
+
+/* SAR List */
+.sar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sar-card {
+  background: #252536;
+  border-radius: 8px;
+  padding: 16px;
+  border-left: 4px solid #e74c3c;
+}
+
+.sar-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.sar-id {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.sar-status-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.sar-status-badge.acknowledged {
+  background: #27ae60;
+  color: white;
+}
+
+.sar-status-badge.submitted {
+  background: #f39c12;
+  color: white;
+}
+
+.sar-card-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #ccc;
+}
+
+/* Audit Log */
+.audit-log {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.audit-entry {
+  display: grid;
+  grid-template-columns: 140px 120px 80px 80px 1fr;
+  gap: 12px;
+  padding: 12px;
+  background: #252536;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  align-items: center;
+}
+
+.audit-time {
+  color: #888;
+  font-family: monospace;
+}
+
+.audit-action {
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 0.75rem;
+}
+
+.audit-action.sar_filed {
+  background: #e74c3c;
+  color: white;
+}
+
+.audit-action.market_closed {
+  background: #9b59b6;
+  color: white;
+}
+
+.audit-action.vote_submitted {
+  background: #3498db;
+  color: white;
+}
+
+.audit-action.pattern_matched {
+  background: #f39c12;
+  color: white;
+}
+
+.audit-actor {
+  color: #aaa;
+}
+
+.audit-tx {
+  color: #888;
+  font-family: monospace;
+}
+
+.audit-details {
+  color: #999;
+  font-size: 0.8rem;
+}
+
+.compliance-note {
+  background: linear-gradient(135deg, #1a3a1a 0%, #1e2e1e 100%);
+  border: 1px solid #27ae60;
+  border-radius: 8px;
+  padding: 16px;
+  color: #7fca7f;
+  font-size: 0.9rem;
+}
+
+
+/* Alert Banner */
+.alert-banner {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: white;
+  padding: 16px 20px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+}
+
+.alert-icon {
+  font-size: 1.5rem;
+}
+
+.alert-text {
+  font-size: 0.95rem;
+}

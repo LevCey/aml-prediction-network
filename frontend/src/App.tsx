@@ -7,9 +7,12 @@ const mockTransactions = [
     id: 'TX_001',
     amount: 9500,
     destination: 'Crypto Exchange',
-    riskScore: 0.85,
-    status: 'FLAGGED',
-    timestamp: '2025-11-25 10:30:00'
+    riskScore: 0.92,
+    status: 'BLOCKED',
+    timestamp: '2026-01-25 10:30:00',
+    sarFiled: true,
+    sarId: 'SAR-TX_001',
+    sarStatus: 'ACKNOWLEDGED'
   },
   {
     id: 'TX_002',
@@ -17,7 +20,8 @@ const mockTransactions = [
     destination: 'Wire Transfer',
     riskScore: 0.45,
     status: 'APPROVED',
-    timestamp: '2025-11-25 11:15:00'
+    timestamp: '2026-01-25 11:15:00',
+    sarFiled: false
   },
   {
     id: 'TX_003',
@@ -25,7 +29,8 @@ const mockTransactions = [
     destination: 'High-Risk Jurisdiction',
     riskScore: 0.78,
     status: 'REVIEW',
-    timestamp: '2025-11-25 12:00:00'
+    timestamp: '2026-01-25 12:00:00',
+    sarFiled: false
   }
 ];
 
@@ -36,7 +41,7 @@ const mockPredictions = [
 ];
 
 function App() {
-  const [selectedTab, setSelectedTab] = useState<'dashboard' | 'market' | 'patterns'>('dashboard');
+  const [selectedTab, setSelectedTab] = useState<'dashboard' | 'market' | 'patterns' | 'regulator'>('dashboard');
 
   return (
     <div className="App">
@@ -64,24 +69,43 @@ function App() {
         >
           Fraud Patterns
         </button>
+        <button
+          className={selectedTab === 'regulator' ? 'tab active' : 'tab'}
+          onClick={() => setSelectedTab('regulator')}
+        >
+          Regulator View
+        </button>
       </nav>
 
       <main className="content">
         {selectedTab === 'dashboard' && <DashboardView />}
         {selectedTab === 'market' && <PredictionMarketView />}
         {selectedTab === 'patterns' && <PatternsView />}
+        {selectedTab === 'regulator' && <RegulatorView />}
       </main>
 
       <footer className="footer">
-        <p>Canton Construct Ideathon 2025 | Prediction Markets Track</p>
+        <p>🏆 Canton Catalyst 2026 Winner</p>
       </footer>
     </div>
   );
 }
 
 function DashboardView() {
+  const highRiskTx = mockTransactions.find(tx => tx.riskScore >= 0.8);
+
   return (
     <div className="dashboard">
+      {highRiskTx && (
+        <div className="alert-banner">
+          <span className="alert-icon">🚨</span>
+          <span className="alert-text">
+            <strong>HIGH RISK ALERT:</strong> Transaction {highRiskTx.id} scored {(highRiskTx.riskScore * 100).toFixed(0)}% - 
+            Auto-blocked & SAR filed
+          </span>
+        </div>
+      )}
+
       <h2>Transaction Monitoring</h2>
 
       <div className="stats-grid">
@@ -140,6 +164,20 @@ function DashboardView() {
                 }}
               />
             </div>
+            {tx.sarFiled && (
+              <div className="sar-alert">
+                <div className="sar-header">
+                  <span className="sar-icon">📋</span>
+                  <span className="sar-title">SAR Auto-Filed</span>
+                </div>
+                <div className="sar-details">
+                  <span>ID: {tx.sarId}</span>
+                  <span className={`sar-status ${tx.sarStatus?.toLowerCase()}`}>
+                    {tx.sarStatus === 'ACKNOWLEDGED' ? '✓ ' : ''}{tx.sarStatus}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -273,3 +311,84 @@ function PatternsView() {
 }
 
 export default App;
+
+// Mock audit log data
+const mockAuditLog = [
+  { id: 'LOG-001', timestamp: '2026-01-25 10:35:01', action: 'SAR_FILED', actor: 'Bank A', txId: 'TX_001', details: 'Auto-filed SAR due to risk score 0.92' },
+  { id: 'LOG-002', timestamp: '2026-01-25 10:35:00', action: 'MARKET_CLOSED', actor: 'Bank A', txId: 'TX_001', details: 'Risk score: 92.0%' },
+  { id: 'LOG-003', timestamp: '2026-01-25 10:32:00', action: 'VOTE_SUBMITTED', actor: 'Bank B', txId: 'TX_001', details: 'Confidence: 90%, Stake: $100' },
+  { id: 'LOG-004', timestamp: '2026-01-25 10:31:00', action: 'VOTE_SUBMITTED', actor: 'Bank A', txId: 'TX_001', details: 'Confidence: 95%, Stake: $100' },
+  { id: 'LOG-005', timestamp: '2026-01-25 10:30:00', action: 'PATTERN_MATCHED', actor: 'System', txId: 'TX_001', details: 'Matched pattern: RAPID_CRYPTO' },
+];
+
+const mockSARs = [
+  { sarId: 'SAR-TX_001', txId: 'TX_001', riskScore: 0.92, filingBank: 'Bank A', filedAt: '2026-01-25 10:35:01', status: 'ACKNOWLEDGED' },
+];
+
+function RegulatorView() {
+  return (
+    <div className="regulator-view">
+      <h2>🏛️ Regulator Dashboard</h2>
+      <p className="regulator-subtitle">FinCEN Observer Mode - Read-Only Access</p>
+
+      <div className="regulator-stats">
+        <div className="stat-card">
+          <div className="stat-value">1</div>
+          <div className="stat-label">Active SARs</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-value">5</div>
+          <div className="stat-label">Audit Events</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-value">3</div>
+          <div className="stat-label">Banks Active</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-value">100%</div>
+          <div className="stat-label">Compliance Rate</div>
+        </div>
+      </div>
+
+      <div className="regulator-section">
+        <h3>📋 SAR Reports</h3>
+        <div className="sar-list">
+          {mockSARs.map(sar => (
+            <div key={sar.sarId} className="sar-card">
+              <div className="sar-card-header">
+                <span className="sar-id">{sar.sarId}</span>
+                <span className={`sar-status-badge ${sar.status.toLowerCase()}`}>{sar.status}</span>
+              </div>
+              <div className="sar-card-body">
+                <div><strong>Transaction:</strong> {sar.txId}</div>
+                <div><strong>Risk Score:</strong> {(sar.riskScore * 100).toFixed(1)}%</div>
+                <div><strong>Filing Bank:</strong> {sar.filingBank}</div>
+                <div><strong>Filed At:</strong> {sar.filedAt}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="regulator-section">
+        <h3>📜 Audit Log</h3>
+        <div className="audit-log">
+          {mockAuditLog.map(log => (
+            <div key={log.id} className="audit-entry">
+              <div className="audit-time">{log.timestamp}</div>
+              <div className={`audit-action ${log.action.toLowerCase()}`}>{log.action}</div>
+              <div className="audit-actor">{log.actor}</div>
+              <div className="audit-tx">{log.txId}</div>
+              <div className="audit-details">{log.details}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="compliance-note">
+        <strong>🔒 Privacy Preserved:</strong> Regulator sees actions and outcomes, but NO customer PII is exposed. 
+        All data is anonymized and compliant with BSA Section 314(b) and GDPR.
+      </div>
+    </div>
+  );
+}
