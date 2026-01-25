@@ -2,11 +2,13 @@
 
 **Privacy-Preserving Fraud Detection for Financial Institutions**
 
-Built for **Canton Construct Ideathon** - Prediction Markets Track
+🏆 **Canton Catalyst 2026 Winner** - Currently in Mentorship Program
 
-**Live Demo:** [https://aml-prediction-network.vercel.app](https://aml-prediction-network.vercel.app)
+**Landing Page:** [https://amlprediction.com](https://amlprediction.com)
 
-**Video:** [https://youtu.be/1zIegcrLfaE](https://youtu.be/1zIegcrLfaE)
+**Live Demo:** [https://amlprediction.network](https://amlprediction.network)
+
+**Video:** [https://youtu.be/OnXVF5nY2yI](https://youtu.be/OnXVF5nY2yI)
 
 ![Dashboard Screenshot](docs/images/dashboard-screenshot.png)
 
@@ -307,4 +309,4 @@ MIT License - Open source post-hackathon
 
 ---
 
-Built with Canton Network for the Canton Construct Ideathon 2025.
+🏆 Canton Catalyst 2026 Winner

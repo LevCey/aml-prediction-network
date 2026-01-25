@@ -55,5 +55,7 @@ lerna-debug.log*
 # Temporary files
 tmp/
 temp/
-*.tmp    
-docs
+*.tmp
+
+# Documentation (local only)
+docs/
