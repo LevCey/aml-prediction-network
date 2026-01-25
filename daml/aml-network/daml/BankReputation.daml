@@ -17,13 +17,16 @@ template BankReputation
     signatory bank
     observer networkParticipants
 
-    -- Update reputation after outcome verification
+    -- Update reputation after outcome verification (called by verifier, not bank itself)
     choice UpdateReputation : ContractId BankReputation
       with
         wasCorrect: Bool
-        predictionConfidence: Decimal
-      controller bank
+        verifier: Party  -- Who verified the outcome
+      controller verifier
       do
+        -- Verifier must be in network
+        assertMsg "Verifier must be a network participant" (verifier `elem` networkParticipants || verifier == bank)
+        
         currentTime <- getTime
         let newTotal = totalPredictions + 1
         let newCorrect = if wasCorrect then correctPredictions + 1 else correctPredictions
@@ -143,23 +146,23 @@ test_bank_reputation = script do
       lastUpdated = now
       networkParticipants
 
-  -- Bank A makes correct prediction
-  repId2 <- submit bankA do
+  -- Bank B (as verifier) updates Bank A's reputation after correct prediction
+  repId2 <- submit bankB do
     exerciseCmd repId UpdateReputation with
       wasCorrect = True
-      predictionConfidence = 0.85
+      verifier = bankB
 
-  -- Bank A makes another correct prediction
-  repId3 <- submit bankA do
+  -- Bank B updates again after another correct prediction
+  repId3 <- submit bankB do
     exerciseCmd repId2 UpdateReputation with
       wasCorrect = True
-      predictionConfidence = 0.90
+      verifier = bankB
 
-  -- Bank A makes incorrect prediction
-  repId4 <- submit bankA do
+  -- Bank B updates after incorrect prediction
+  repId4 <- submit bankB do
     exerciseCmd repId3 UpdateReputation with
       wasCorrect = False
-      predictionConfidence = 0.75
+      verifier = bankB
 
   -- Query final reputation
   (finalReputation, correct, total) <- submit bankA do

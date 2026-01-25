@@ -227,6 +227,23 @@
     .cta-section p { color: #a0b4d0; margin-bottom: 28px; }
     .cta-section .btn-primary { background: #fff; color: #0d2b5a; }
     .cta-section .btn-primary:hover { background: #f0f4f8; }
+    .waitlist-form {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    .waitlist-form input[type="email"] {
+      flex: 1;
+      min-width: 250px;
+      padding: 14px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    .waitlist-form button { white-space: nowrap; }
     
     /* Footer */
     footer {
@@ -445,9 +462,12 @@
 
     <div class="container">
       <section class="cta-section">
-        <h2>See the Platform in Action</h2>
-        <p>Schedule a demonstration to see how AML Prediction Network can reduce your false positive rate while improving detection accuracy.</p>
-        <a href="https://amlprediction.network" class="btn btn-primary" target="_blank">Request Demo →</a>
+        <h2>Join the Waitlist</h2>
+        <p>Be the first to know when AML Prediction Network launches. Get early access and exclusive updates.</p>
+        <form action="https://formspree.io/f/mjgyevpy" method="POST" class="waitlist-form">
+          <input type="email" name="email" placeholder="Enter your email" required>
+          <button type="submit" class="btn btn-primary">Join Waitlist →</button>
+        </form>
       </section>
     </div>
   </main>

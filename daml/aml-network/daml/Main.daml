@@ -165,16 +165,16 @@ aml_network_demo = script do
       lastUpdated = now
       networkParticipants = observers
 
-  -- Update after correct prediction
-  repA2 <- submit bankA do
+  -- Update after correct prediction (verifier = bankB who did the investigation)
+  repA2 <- submit bankB do
     exerciseCmd repA UpdateReputation with
       wasCorrect = True
-      predictionConfidence = 0.85
+      verifier = bankB
 
   repB2 <- submit bankB do
     exerciseCmd repB UpdateReputation with
       wasCorrect = True
-      predictionConfidence = 0.75
+      verifier = bankB
 
   (repScoreA, correctA, totalA) <- submit bankA do
     exerciseCmd repA2 GetReputation
