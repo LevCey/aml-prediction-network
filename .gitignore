@@ -57,5 +57,5 @@ tmp/
 temp/
 *.tmp
 
-# Documentation (local only)
-docs/
+# Internal/Local files
+levi/
