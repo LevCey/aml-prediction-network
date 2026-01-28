@@ -1,6 +1,5 @@
 module TransactionPattern where
 
-import DA.Time
 import Daml.Script
 
 -- Fraud pattern shared by banks (NO customer PII)

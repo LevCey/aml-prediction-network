@@ -1,6 +1,5 @@
 module BankReputation where
 
-import DA.Time
 import Daml.Script
 
 -- Bank's reputation based on prediction accuracy

@@ -126,7 +126,7 @@ aml_network_demo = script do
   -- SCENE 6: Determine action
   debug "=== SCENE 6: Action Determined ==="
 
-  (scoreId2, sarOpt) <- submit bankA do
+  (scoreId2, sarOpt) <- submit bankB do
     exerciseCmd scoreId DetermineAction
 
   debug $ "Action: REVIEW - Enhanced due diligence required"

@@ -4,8 +4,13 @@
 sdk-version: 2.10.2
 name: aml-network
 source: daml
-init-script: Main:setup
-version: 0.0.1
+init-script: Main:aml_network_demo
+version: 1.0.0
+exposed-modules:
+  - Main
+  - PredictionMarket
+  - BankReputation
+  - TransactionPattern
 dependencies:
   - daml-prim
   - daml-stdlib

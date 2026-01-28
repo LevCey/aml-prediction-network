@@ -4,7 +4,6 @@ import DA.Time
 import DA.Map (Map)
 import DA.Map qualified as M
 import DA.Optional
-import DA.List (head)
 import Daml.Script
 
 -- Individual bank's prediction vote
@@ -75,6 +74,7 @@ template PredictionMarket
           score = riskScore
           timestamp = currentTime
           contributors = map fst votesList
+          creator
           regulator
           actionTaken = None
           sarFiled = False
@@ -128,16 +128,17 @@ template RiskScore
     score: Decimal
     timestamp: Time
     contributors: [Party]
+    creator: Party
     regulator: Party
     actionTaken: Optional Text
     sarFiled: Bool
   where
-    signatory contributors
-    observer regulator
+    signatory creator
+    observer contributors ++ [regulator]
 
     -- Determine action based on risk score (auto-files SAR if >= 0.8)
     choice DetermineAction : (ContractId RiskScore, Optional (ContractId SARReport))
-      controller (head contributors)
+      controller creator
       do
         currentTime <- getTime
         let action =
@@ -151,7 +152,7 @@ template RiskScore
             sarId = "SAR-" <> transactionId
             transactionId
             riskScore = score
-            filingBank = head contributors
+            filingBank = creator
             regulator
             filedAt = currentTime
             status = "SUBMITTED"
@@ -160,7 +161,7 @@ template RiskScore
             logId = "LOG-SAR-" <> transactionId
             transactionId
             action = "SAR_FILED"
-            actor = head contributors
+            actor = creator
             timestamp = currentTime
             details = "Auto-filed SAR due to risk score " <> show score
             regulator
