@@ -21,9 +21,7 @@ aml-prediction-network/
 ├── docs/                           # Documentation
 │   ├── architecture.md            # Technical architecture
 │   ├── demo-scenario.md           # Demo script for presentations
-│   ├── images/                    # Screenshots & diagrams
-│   ├── medium/                    # Blog articles
-│   └── chat/                      # Chat history backups
+│  
 │
 ├── README.md                       # Project overview
 ├── ROADMAP.md                      # Development roadmap
@@ -48,8 +46,8 @@ FraudPattern → SuspiciousTransaction → PredictionMarket → RiskScore → Ba
 
 ## External Resources
 
-- **Landing Page**: amlprediction.com (separate repo: /Documents/Kiro/AML-Prediction)
-- **Demo App**: amlprediction.network (Vercel deployment)
+- **Landing Page**: amlprediction.com 
+- **Demo App**: amlprediction.network 
 
 ---
 
