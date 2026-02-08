@@ -183,7 +183,7 @@ export default function Demo() {
     <div className="demo-app cinematic">
       <header className="cinema-header">
         <Link to="/" className="cinema-logo">
-          <span className="logo-icon">🛡️</span>
+          <img src="/logo.jpg" alt="AML" className="logo-img" />
           <span>AML Prediction Network</span>
         </Link>
         <div className="cinema-status">

@@ -31,6 +31,12 @@
   background: rgba(18, 18, 26, 0.8);
 }
 
+.logo-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+}
+
 .cinema-logo {
   display: flex;
   align-items: center;
