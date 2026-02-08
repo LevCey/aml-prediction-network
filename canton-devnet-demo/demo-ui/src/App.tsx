@@ -36,17 +36,45 @@ function App() {
   const [marketResult, setMarketResult] = useState<MarketResult | null>(null)
   const [animatedPredictions, setAnimatedPredictions] = useState<number[]>([])
   const [auditLog, setAuditLog] = useState<{time: string; type: string; bank: string; tx: string; detail: string}[]>([])
+  const [displayScore, setDisplayScore] = useState(0)
 
   const scenario = SCENARIOS.find(s => s.id === scenarioId) || SCENARIOS[0]
+
+  // Derived: TX counter (1 create + N votes)
+  const txCount = step >= 1 ? 1 + animatedPredictions.length : 0
+
+  // Derived: live risk score from visible votes
+  const liveRiskScore = (() => {
+    if (!marketResult?.votes || animatedPredictions.length === 0) return 0
+    const visible = marketResult.votes.filter((_, i) => animatedPredictions.includes(i))
+    const totalStake = visible.reduce((s, v) => s + v.stake, 0)
+    const weightedSum = visible.reduce((s, v) => s + (v.confidence / 100) * v.stake, 0)
+    return totalStake > 0 ? Math.round((weightedSum / totalStake) * 1000) / 10 : 0
+  })()
 
   useEffect(() => {
     fetch(`${API_URL}/api/health`).then(r => r.json()).then(d => setLedgerConnected(d.status === 'ok')).catch(() => setLedgerConnected(false))
   }, [])
 
+  // Animate votes one by one (800ms apart)
   useEffect(() => {
     if (step >= 2 && marketResult?.votes) {
       setAnimatedPredictions([])
-      marketResult.votes.forEach((_, i) => setTimeout(() => setAnimatedPredictions(prev => [...prev, i]), i * 400))
+      marketResult.votes.forEach((_, i) => setTimeout(() => setAnimatedPredictions(prev => [...prev, i]), i * 800))
+    }
+  }, [step, marketResult])
+
+  // Animate score count-up on step 3
+  useEffect(() => {
+    if (step === 3 && marketResult) {
+      const target = marketResult.riskScore
+      let current = 0
+      const timer = setInterval(() => {
+        current += target / 25
+        if (current >= target) { setDisplayScore(target); clearInterval(timer) }
+        else setDisplayScore(Math.round(current * 10) / 10)
+      }, 40)
+      return () => clearInterval(timer)
     }
   }, [step, marketResult])
 
@@ -77,7 +105,7 @@ function App() {
     }
   }
 
-  const reset = () => { setStep(0); setMarketResult(null); setAnimatedPredictions([]); setAuditLog([]) }
+  const reset = () => { setStep(0); setMarketResult(null); setAnimatedPredictions([]); setAuditLog([]); setDisplayScore(0) }
 
   const getDecision = (score: number) => {
     if (score >= 80) return { text: 'BLOCK TRANSACTION', icon: '🚨', type: 'danger' }
@@ -119,6 +147,7 @@ function App() {
             <span className={`status-dot ${ledgerConnected ? 'connected' : 'disconnected'}`}></span>
             <span>Canton Network</span>
             <span className="header-subtitle">via Canton DevNet</span>
+            {txCount > 0 && <span className="tx-counter">⛓ {txCount} Canton TX{txCount !== 1 ? 's' : ''} executed</span>}
           </div>
           <div className="header-right">
             {tab === 'dashboard' && <>
@@ -146,6 +175,22 @@ function App() {
                   <h2>🎬 AML Prediction Network Demo</h2>
                   <p>Experience real-time fraud detection powered by Canton Network</p>
                   <button onClick={startDemo} className="btn-start">Start Demo</button>
+                  <div className="comparison">
+                    <div className="comparison-col comparison-without">
+                      <h4>❌ Without AML Network</h4>
+                      <div className="comparison-item">🏦 Each bank operates alone</div>
+                      <div className="comparison-item">⏳ Days/weeks to detect fraud</div>
+                      <div className="comparison-item">📊 95% false positive rate</div>
+                      <div className="comparison-item">💸 Fraudster moves to next bank</div>
+                    </div>
+                    <div className="comparison-col comparison-with">
+                      <h4>✅ With AML Network</h4>
+                      <div className="comparison-item">🌐 Banks share intelligence</div>
+                      <div className="comparison-item">⚡ Real-time detection</div>
+                      <div className="comparison-item">📊 12% false positive rate</div>
+                      <div className="comparison-item">🚫 Fraudster blocked instantly</div>
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <>
@@ -180,6 +225,12 @@ function App() {
                           </div>
                         ))}
                       </div>
+                      {animatedPredictions.length > 0 && (
+                        <div className="live-score">
+                          <span className="live-score-label">Running Risk Score</span>
+                          <span className={`live-score-value ${liveRiskScore >= 80 ? 'danger' : liveRiskScore >= 60 ? 'warning' : 'safe'}`}>{liveRiskScore}%</span>
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -188,7 +239,7 @@ function App() {
                     <>
                       <div className="score-card">
                         <div className="card-header"><span>⚡</span> Aggregated Risk Score</div>
-                        <div className="score-display"><span className="score-value">{marketResult.riskScore}</span><span className="score-percent">%</span></div>
+                        <div className="score-display"><span className="score-value">{displayScore}</span><span className="score-percent">%</span></div>
                         <div className="score-label">Fraud Probability</div>
                         <div className={`decision ${decision.type}`}><span>{decision.icon}</span> {decision.text}</div>
                       </div>
