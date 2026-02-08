@@ -1,0 +1,84 @@
+module Setup where
+
+import Daml.Script
+import DA.Time
+import DA.Map qualified as Map
+
+import BankReputation
+
+-- Setup US parties for demo
+setup_demo : Script ()
+setup_demo = script do
+  -- US Banks
+  jpmorgan <- allocatePartyWithHint "JPMorgan_Chase" (PartyIdHint "JPMorgan_Chase")
+  bankOfAmerica <- allocatePartyWithHint "Bank_of_America" (PartyIdHint "Bank_of_America")
+  wells <- allocatePartyWithHint "Wells_Fargo" (PartyIdHint "Wells_Fargo")
+  citi <- allocatePartyWithHint "Citibank" (PartyIdHint "Citibank")
+  regulator <- allocatePartyWithHint "FinCEN" (PartyIdHint "FinCEN")
+
+  -- Setup users
+  jpmId <- validateUserId "jpmorgan"
+  boaId <- validateUserId "bofa"
+  wellsId <- validateUserId "wells"
+  citiId <- validateUserId "citi"
+  fincenId <- validateUserId "fincen"
+
+  createUser (User jpmId (Some jpmorgan)) [CanActAs jpmorgan]
+  createUser (User boaId (Some bankOfAmerica)) [CanActAs bankOfAmerica]
+  createUser (User wellsId (Some wells)) [CanActAs wells]
+  createUser (User citiId (Some citi)) [CanActAs citi]
+  createUser (User fincenId (Some regulator)) [CanActAs regulator]
+
+  now <- getTime
+  let observers = [jpmorgan, bankOfAmerica, wells, citi, regulator]
+
+  debug "=== AML Network Demo Setup Complete ==="
+  debug $ "JPMorgan Chase: " <> show jpmorgan
+  debug $ "Bank of America: " <> show bankOfAmerica
+  debug $ "Wells Fargo: " <> show wells
+  debug $ "Citibank: " <> show citi
+  debug $ "FinCEN (Regulator): " <> show regulator
+
+  -- Create initial reputations
+  submit jpmorgan do
+    createCmd BankReputation with
+      bank = jpmorgan
+      totalPredictions = 156
+      correctPredictions = 142
+      accuracy = 0.91
+      reputationScore = 92.0
+      lastUpdated = now
+      networkParticipants = observers
+
+  submit bankOfAmerica do
+    createCmd BankReputation with
+      bank = bankOfAmerica
+      totalPredictions = 134
+      correctPredictions = 115
+      accuracy = 0.86
+      reputationScore = 85.0
+      lastUpdated = now
+      networkParticipants = observers
+
+  submit wells do
+    createCmd BankReputation with
+      bank = wells
+      totalPredictions = 98
+      correctPredictions = 81
+      accuracy = 0.83
+      reputationScore = 78.0
+      lastUpdated = now
+      networkParticipants = observers
+
+  submit citi do
+    createCmd BankReputation with
+      bank = citi
+      totalPredictions = 112
+      correctPredictions = 89
+      accuracy = 0.79
+      reputationScore = 74.0
+      lastUpdated = now
+      networkParticipants = observers
+
+  debug "=== Initial reputations created ==="
+  return ()

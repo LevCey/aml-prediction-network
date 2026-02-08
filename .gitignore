@@ -14,7 +14,9 @@ dist/
 
 # Environment
 .env
+.env.*
 .env.local
+.env.tenzro
 .env.development.local
 .env.test.local
 .env.production.local
@@ -59,3 +61,4 @@ temp/
 
 # Internal/Local files
 levi/
+cht
