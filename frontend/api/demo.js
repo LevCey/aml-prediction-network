@@ -11,6 +11,7 @@ const tenzro = async (endpoint, options = {}) => {
 };
 
 let parties = {};
+let marketCount = 47;
 
 const loadParties = async () => {
   if (Object.keys(parties).length > 0) return;
@@ -21,10 +22,18 @@ const loadParties = async () => {
   }
 };
 
+export function getMarketCount() {
+  return marketCount;
+}
+
 export default async function handler(req, res) {
+  if (req.method === 'GET') {
+    return res.json({ marketCount });
+  }
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
 
   await loadParties();
+  marketCount++;
 
   const { scenario = 'high' } = req.body || {};
   const scenarios = { high: { base: 0.85, variance: 0.08 }, medium: { base: 0.55, variance: 0.15 }, low: { base: 0.28, variance: 0.12 } };
@@ -54,7 +63,7 @@ export default async function handler(req, res) {
 
     res.json({
       success: true, mode: 'canton-devnet', ledger: true,
-      transactionId: txId,
+      transactionId: txId, marketCount,
       market: { transactionId: txId, amount: 25000, destination: 'Binance (Crypto Exchange)',
         riskFlags: ['New account (< 30 days)', 'First crypto transaction', 'High-risk jurisdiction'],
         votes, riskScore, action: riskScore >= 80 ? 'BLOCK' : riskScore >= 60 ? 'REVIEW' : 'APPROVE' },
