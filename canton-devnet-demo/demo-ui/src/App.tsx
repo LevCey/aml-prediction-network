@@ -44,10 +44,10 @@ function App() {
   // Derived: TX counter (1 create + N votes)
   const txCount = step >= 1 ? 1 + animatedPredictions.length : 0
 
-  // Derived: live risk score from visible votes
+  // Derived: live risk score from visible votes (exclude regulator)
   const liveRiskScore = (() => {
     if (!marketResult?.votes || animatedPredictions.length === 0) return 0
-    const visible = marketResult.votes.filter((_, i) => animatedPredictions.includes(i))
+    const visible = marketResult.votes.filter((_, i) => animatedPredictions.includes(i)).filter(v => !v.isRegulator)
     const totalStake = visible.reduce((s, v) => s + v.stake, 0)
     const weightedSum = visible.reduce((s, v) => s + (v.confidence / 100) * v.stake, 0)
     return totalStake > 0 ? Math.round((weightedSum / totalStake) * 1000) / 10 : 0
@@ -287,7 +287,7 @@ function App() {
                             <span className="bank-name">{vote.bank}</span>
                             <div className="prediction-bar"><div className="bar-fill" style={{ width: `${vote.confidence}%`, background: vote.confidence > 70 ? '#ef4444' : vote.confidence > 50 ? '#f59e0b' : '#22c55e' }}></div></div>
                             <span className="prediction-value">{vote.confidence}%</span>
-                            <span className="stake">${vote.stake} stake</span>
+                            <span className="stake">{vote.isRegulator ? 'Observer' : `$${vote.stake} stake`}</span>
                           </div>
                         ))}
                       </div>
