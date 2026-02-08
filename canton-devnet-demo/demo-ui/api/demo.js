@@ -26,7 +26,7 @@ export default async function handler(req, res) {
   await loadParties();
 
   const { scenario = 'high' } = req.body;
-  const scenarios = { high: { base: 0.78, variance: 0.12 }, medium: { base: 0.55, variance: 0.15 }, low: { base: 0.28, variance: 0.12 } };
+  const scenarios = { high: { base: 0.85, variance: 0.08 }, medium: { base: 0.55, variance: 0.15 }, low: { base: 0.28, variance: 0.12 } };
   const { base, variance } = scenarios[scenario] || scenarios.high;
 
   const txId = `TX-${Math.floor(Math.random() * 100000000)}`;
@@ -69,8 +69,9 @@ export default async function handler(req, res) {
       votes.push({ bank: bank.name, confidence: Math.round(confidence * 100), stake: bank.stake, isRegulator: bank.isRegulator, txId: voteRes.transactionId });
     }
 
-    const totalStake = votes.reduce((s, v) => s + v.stake, 0);
-    const weightedSum = votes.reduce((s, v) => s + (v.confidence / 100) * v.stake, 0);
+    const nonRegVotes = votes.filter(v => !v.isRegulator);
+    const totalStake = nonRegVotes.reduce((s, v) => s + v.stake, 0);
+    const weightedSum = nonRegVotes.reduce((s, v) => s + (v.confidence / 100) * v.stake, 0);
     const riskScore = Math.round((weightedSum / totalStake) * 1000) / 10;
 
     res.json({
