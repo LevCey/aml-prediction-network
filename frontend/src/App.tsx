@@ -114,7 +114,7 @@ function DashboardView({ devnet, loading }: { devnet: DevnetStats; loading: bool
   ];
 
   const displayContracts = devnet.contracts.length > 0 ? devnet.contracts : sampleContracts;
-  const totalCount = devnet.totalContracts > 0 ? devnet.totalContracts : 847;
+  const totalCount = devnet.totalContracts > 0 ? devnet.totalContracts : 47;
 
   return (
     <div className="dashboard">
@@ -211,8 +211,8 @@ function PredictionMarketView({ devnet }: { devnet: DevnetStats }) {
       </div>
 
       <div className="market-stats">
-        <div className="market-stat"><span className="stat-num">847</span><span className="stat-lbl">Total Markets</span></div>
-        <div className="market-stat"><span className="stat-num">23</span><span className="stat-lbl">Blocked</span></div>
+        <div className="market-stat"><span className="stat-num">47</span><span className="stat-lbl">Total Markets</span></div>
+        <div className="market-stat"><span className="stat-num">12</span><span className="stat-lbl">Blocked</span></div>
         <div className="market-stat"><span className="stat-num">89%</span><span className="stat-lbl">Accuracy</span></div>
         <div className="market-stat"><span className="stat-num">-68%</span><span className="stat-lbl">False Positives</span></div>
       </div>
@@ -342,7 +342,7 @@ function RegulatorView({ devnet }: { devnet: DevnetStats }) {
 
       <div className="regulator-stats">
         <div className="stat-card">
-          <div className="stat-value">847</div>
+          <div className="stat-value">47</div>
           <div className="stat-label">TOTAL MARKETS</div>
         </div>
         <div className="stat-card">
