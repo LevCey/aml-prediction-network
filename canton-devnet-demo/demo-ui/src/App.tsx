@@ -212,8 +212,7 @@ function App() {
         <header className="header">
           <div className="header-left">
             <span className={`status-dot ${ledgerConnected ? 'connected' : 'disconnected'}`}></span>
-            <span>Canton Network</span>
-            <span className="header-subtitle">via Canton DevNet</span>
+            <span>Connected to Canton DevNet</span>
             {txCount > 0 && <span className="tx-counter">⛓ {txCount} Canton TX{txCount !== 1 ? 's' : ''} executed</span>}
           </div>
           <div className="header-right">
