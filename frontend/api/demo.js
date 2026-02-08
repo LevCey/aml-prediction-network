@@ -16,7 +16,8 @@ const loadParties = async () => {
   if (Object.keys(parties).length > 0) return;
   const res = await tenzro('/api/ledger/parties');
   for (const p of res.parties || []) {
-    parties[p.displayName.toLowerCase().replace(/_/g, '')] = p.partyId;
+    const key = p.partyId.split('::')[0];
+    parties[key] = p.partyId;
   }
 };
 
@@ -36,11 +37,11 @@ export default async function handler(req, res) {
     const createRes = await tenzro('/api/ledger/contracts', {
       method: 'POST',
       body: JSON.stringify({
-        partyId: parties.jpmorganchase,
+        partyId: parties.jpmorgan,
         templateId: 'PredictionMarket:PredictionMarket',
         payload: {
-          marketId: `MARKET-${Date.now()}`, transactionId: txId, creator: parties.jpmorganchase,
-          participants: [parties.bankofamerica, parties.wellsfargo, parties.citibank],
+          marketId: `MARKET-${Date.now()}`, transactionId: txId, creator: parties.jpmorgan,
+          participants: [parties.bofa, parties.wells, parties.citi],
           deadline, votes: {}, regulator: parties.fincen, isOpen: true
         }
       })
@@ -49,10 +50,10 @@ export default async function handler(req, res) {
     let contractId = createRes.contractId;
     const votes = [];
     const bankConfig = [
-      { key: 'bankofamerica', name: 'Bank of America', stake: 200 },
-      { key: 'wellsfargo', name: 'Wells Fargo', stake: 150 },
-      { key: 'citibank', name: 'Citibank', stake: 120 },
-      { key: 'jpmorganchase', name: 'JPMorgan Chase', stake: 250 },
+      { key: 'bofa', name: 'Bank of America', stake: 200 },
+      { key: 'wells', name: 'Wells Fargo', stake: 150 },
+      { key: 'citi', name: 'Citibank', stake: 120 },
+      { key: 'jpmorgan', name: 'JPMorgan Chase', stake: 250 },
       { key: 'fincen', name: 'FinCEN', stake: 300, isRegulator: true }
     ];
 
