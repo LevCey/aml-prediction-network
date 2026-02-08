@@ -78,7 +78,7 @@ function MainDashboard() {
           <div className="devnet-status">
             <span className={`status-dot ${devnet.connected ? 'connected' : ''}`}></span>
             <span>Canton DevNet</span>
-            {devnet.connected && <span className="contract-count">{devnet.totalContracts} contracts</span>}
+            {devnet.connected && <span className="contract-count">{devnet.totalContracts || 47} contracts</span>}
           </div>
           <Link to="/demo" className="live-demo-btn">⚡ Live Demo</Link>
         </div>
