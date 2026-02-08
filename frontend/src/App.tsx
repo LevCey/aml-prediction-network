@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import './App.css';
+import Demo from './Demo';
 
 // Mock data for demo
 const mockTransactions = [
@@ -41,6 +43,17 @@ const mockPredictions = [
 ];
 
 function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<MainDashboard />} />
+        <Route path="/demo" element={<Demo />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+function MainDashboard() {
   const [selectedTab, setSelectedTab] = useState<'dashboard' | 'market' | 'patterns' | 'regulator'>('dashboard');
 
   return (
@@ -50,7 +63,7 @@ function App() {
           <h1>AML Prediction Network</h1>
           <p className="subtitle">Privacy-Preserving Fraud Detection | Built on Canton Network</p>
         </div>
-        <a href="https://aml-prediction-network-frontend.vercel.app/" target="_blank" rel="noopener noreferrer" className="live-demo-btn">⚡ Live Demo</a>
+        <Link to="/demo" className="live-demo-btn">⚡ Live Demo</Link>
       </header>
 
       <nav className="tabs">
