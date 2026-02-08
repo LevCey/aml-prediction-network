@@ -46,8 +46,11 @@ function App() {
   return (
     <div className="App">
       <header className="header">
-        <h1>AML Prediction Network</h1>
-        <p className="subtitle">Privacy-Preserving Fraud Detection | Built on Canton Network</p>
+        <div className="header-content">
+          <h1>AML Prediction Network</h1>
+          <p className="subtitle">Privacy-Preserving Fraud Detection | Built on Canton Network</p>
+        </div>
+        <a href="https://aml-prediction-network-frontend.vercel.app/" target="_blank" rel="noopener noreferrer" className="live-demo-btn">⚡ Live Demo</a>
       </header>
 
       <nav className="tabs">
