@@ -325,6 +325,8 @@ function PatternsView() {
 export default App;
 
 function RegulatorView({ devnet }: { devnet: DevnetStats }) {
+  const [showVerification, setShowVerification] = useState(false);
+
   const sampleActivity = [
     { time: '10:35:01', action: 'SAR_FILED', bank: 'JPMorgan Chase', tx: 'TX-89234521', detail: 'Auto-filed SAR, risk score 87.2%' },
     { time: '10:35:00', action: 'MARKET_CLOSED', bank: 'JPMorgan Chase', tx: 'TX-89234521', detail: 'Decision: BLOCK' },
@@ -377,6 +379,30 @@ function RegulatorView({ devnet }: { devnet: DevnetStats }) {
       <div className="compliance-note">
         <strong>🔒 Privacy Preserved:</strong> Regulator sees actions and outcomes, but NO customer PII is exposed. 
         All data is anonymized and compliant with BSA Section 314(b) and GDPR.
+      </div>
+
+      <div className="regulator-section verification-section">
+        <h3 onClick={() => setShowVerification(!showVerification)} style={{cursor: 'pointer'}}>
+          🔗 Canton DevNet Verification {showVerification ? '▼' : '▶'}
+        </h3>
+        {showVerification && (
+          <div className="verification-content">
+            <p className="verification-note">Live connection to Tenzro Canton DevNet - Party IDs are cryptographically unique</p>
+            <div className="verification-grid">
+              {devnet.parties.map((party, i) => (
+                <div key={i} className="verification-item">
+                  <span className="verification-name">{party.isRegulator ? '🏛️' : '🏦'} {party.name}</span>
+                  <code className="verification-id">{party.partyId}</code>
+                </div>
+              ))}
+            </div>
+            <div className="verification-footer">
+              <span className="verification-badge">✓ tenzro-devnet</span>
+              <span className="verification-badge">✓ Canton Network</span>
+              <span className="verification-badge">✓ {devnet.parties.length} Parties Active</span>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="regulator-section compliance-breakdown">
