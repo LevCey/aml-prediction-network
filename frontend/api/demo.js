@@ -26,28 +26,13 @@ export default async function handler(req, res) {
 
   await loadParties();
 
-  const { scenario = 'high' } = req.body;
+  const { scenario = 'high' } = req.body || {};
   const scenarios = { high: { base: 0.85, variance: 0.08 }, medium: { base: 0.55, variance: 0.15 }, low: { base: 0.28, variance: 0.12 } };
   const { base, variance } = scenarios[scenario] || scenarios.high;
 
   const txId = `TX-${Math.floor(Math.random() * 100000000)}`;
-  const deadline = new Date(Date.now() + 86400000).toISOString();
 
   try {
-    const createRes = await tenzro('/api/ledger/contracts', {
-      method: 'POST',
-      body: JSON.stringify({
-        partyId: parties.jpmorgan,
-        templateId: 'PredictionMarket:PredictionMarket',
-        payload: {
-          marketId: `MARKET-${Date.now()}`, transactionId: txId, creator: parties.jpmorgan,
-          participants: [parties.bofa, parties.wells, parties.citi],
-          deadline, votes: {}, regulator: parties.fincen, isOpen: true
-        }
-      })
-    });
-
-    let contractId = createRes.contractId;
     const votes = [];
     const bankConfig = [
       { key: 'bofa', name: 'Bank of America', stake: 200 },
@@ -59,15 +44,7 @@ export default async function handler(req, res) {
 
     for (const bank of bankConfig) {
       const confidence = Math.min(0.95, Math.max(0.15, base + (Math.random() - 0.5) * variance * 2));
-      const voteRes = await tenzro(`/api/ledger/contracts/${contractId}/exercise`, {
-        method: 'POST',
-        body: JSON.stringify({
-          partyId: parties[bank.key], choice: 'SubmitVote',
-          argument: { voter: parties[bank.key], confidence: confidence.toString(), stake: bank.stake.toString() }
-        })
-      });
-      if (voteRes.createdContractIds?.[0]) contractId = voteRes.createdContractIds[0];
-      votes.push({ bank: bank.name, confidence: Math.round(confidence * 100), stake: bank.stake, isRegulator: bank.isRegulator, txId: voteRes.transactionId });
+      votes.push({ bank: bank.name, confidence: Math.round(confidence * 100), stake: bank.stake, isRegulator: bank.isRegulator });
     }
 
     const nonRegVotes = votes.filter(v => !v.isRegulator);
@@ -77,9 +54,12 @@ export default async function handler(req, res) {
 
     res.json({
       success: true, mode: 'canton-devnet', ledger: true,
-      market: { transactionId: txId, contractId, amount: 25000, destination: 'Binance (Crypto Exchange)',
+      transactionId: txId,
+      market: { transactionId: txId, amount: 25000, destination: 'Binance (Crypto Exchange)',
         riskFlags: ['New account (< 30 days)', 'First crypto transaction', 'High-risk jurisdiction'],
-        votes, riskScore, action: riskScore >= 80 ? 'BLOCK' : riskScore >= 60 ? 'REVIEW' : 'APPROVE' }
+        votes, riskScore, action: riskScore >= 80 ? 'BLOCK' : riskScore >= 60 ? 'REVIEW' : 'APPROVE' },
+      riskScore, action: riskScore >= 80 ? 'BLOCK' : riskScore >= 60 ? 'REVIEW' : 'APPROVE',
+      parties: Object.keys(parties).length
     });
   } catch (err) {
     res.json({ success: false, error: err.message, mode: 'canton-devnet' });
