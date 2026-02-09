@@ -199,14 +199,20 @@ export default function Demo() {
           <div className="cinema-intro">
             <h1>Privacy-Preserving Fraud Detection</h1>
             <p>Real-time collaborative AML powered by Canton Network</p>
+            <div className="hero-stat">
+              <span className="hero-from">95%</span>
+              <span className="hero-arrow">→</span>
+              <span className="hero-to">12%</span>
+              <div className="hero-label">False Positive Reduction</div>
+            </div>
             <div className="cinema-comparison">
               <div className="compare-box compare-without">
                 <h3>❌ Without AML Network</h3>
-                <ul><li>Banks operate in silos</li><li>Days to detect fraud</li><li>95% false positive rate</li><li>Fraudster moves freely</li></ul>
+                <ul><li><strong className="stat-bad">95%</strong> false positive rate</li><li>Banks operate in silos</li><li>Days to detect fraud</li><li>Fraudster moves freely</li></ul>
               </div>
               <div className="compare-box compare-with">
                 <h3>✅ With AML Network</h3>
-                <ul><li>Shared intelligence</li><li>Real-time detection</li><li>12% false positive rate</li><li>Instant blocking</li></ul>
+                <ul><li><strong className="stat-good">12%</strong> false positive rate</li><li>Shared intelligence</li><li>Real-time detection</li><li>Instant blocking</li></ul>
               </div>
             </div>
             <div className="cinema-controls">
