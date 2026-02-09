@@ -248,12 +248,20 @@ export default function Demo() {
               <div className="cinema-market">
                 <div className="market-header"><span>📊 Prediction Market</span><span className="live-badge">● LIVE</span></div>
                 <div className="market-votes">
-                  {marketResult.votes.map((vote, i) => (
+                  {marketResult.votes.filter(v => !v.isRegulator).map((vote, i) => (
                     <div key={i} className={`vote-row ${animatedPredictions.includes(i) ? 'visible' : ''}`}>
-                      <span className="vote-bank">{vote.isRegulator ? '🏛️' : '🏦'} {vote.bank}</span>
+                      <span className="vote-bank">🏦 {vote.bank}</span>
                       <div className="vote-bar"><div className="vote-fill" style={{ width: `${vote.confidence}%`, background: vote.confidence > 70 ? '#ef4444' : vote.confidence > 50 ? '#f59e0b' : '#22c55e' }}></div></div>
                       <span className="vote-pct">{vote.confidence}%</span>
-                      <span className="vote-stake">{vote.isRegulator ? 'Observer' : `$${vote.stake}`}</span>
+                      <span className="vote-stake">${vote.stake}</span>
+                    </div>
+                  ))}
+                  {marketResult.votes.filter(v => v.isRegulator).map((vote, i) => (
+                    <div key={`reg-${i}`} className={`vote-row observer-row ${animatedPredictions.includes(marketResult.votes.indexOf(vote)) ? 'visible' : ''}`}>
+                      <span className="vote-bank">🏛️ {vote.bank}</span>
+                      <div className="vote-bar"><div className="vote-fill observer-fill" style={{ width: '100%' }}></div></div>
+                      <span className="vote-pct" style={{ color: '#64748b' }}>—</span>
+                      <span className="vote-stake">Observer</span>
                     </div>
                   ))}
                 </div>

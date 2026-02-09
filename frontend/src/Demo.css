@@ -444,3 +444,7 @@
   letter-spacing: 1px;
   margin-top: 4px;
 }
+
+/* FinCEN Observer Row */
+.observer-row { opacity: 0.6; }
+.observer-fill { background: linear-gradient(90deg, #334155, #475569) !important; }
