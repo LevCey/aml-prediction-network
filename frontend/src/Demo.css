@@ -369,3 +369,78 @@
 }
 .stat-bad { color: #ef4444; font-size: 1.1em; }
 .stat-good { color: #22c55e; font-size: 1.1em; }
+
+/* Scene 2 - Cross Bank Detection */
+.btn-next-scene {
+  margin-top: 24px;
+  padding: 12px 32px;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 10px rgba(59,130,246,0.3); }
+  50% { box-shadow: 0 0 25px rgba(59,130,246,0.6); }
+}
+.scene2-divider {
+  text-align: center;
+  margin: 40px 0 24px;
+  position: relative;
+}
+.scene2-divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #f59e0b, transparent);
+}
+.scene2-time {
+  background: var(--bg-main, #0f172a);
+  padding: 8px 24px;
+  color: #f59e0b;
+  font-size: 18px;
+  font-weight: 700;
+  position: relative;
+  letter-spacing: 1px;
+}
+.scene2-alert { border-color: #f59e0b !important; }
+.flag-network {
+  background: rgba(59,130,246,0.15) !important;
+  border-color: #3b82f6 !important;
+  color: #60a5fa !important;
+}
+.scene2-result .result-decision { animation: flashBlock 0.5s ease-in-out 2; }
+@keyframes flashBlock {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.scene2-impact {
+  display: flex;
+  justify-content: center;
+  gap: 48px;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+.impact-item { text-align: center; }
+.impact-num {
+  display: block;
+  font-size: 28px;
+  font-weight: 800;
+  color: #22c55e;
+}
+.impact-lbl {
+  display: block;
+  font-size: 12px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 4px;
+}

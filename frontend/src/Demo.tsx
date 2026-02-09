@@ -69,6 +69,13 @@ export default function Demo() {
     }
   }, [step, marketResult])
 
+  useEffect(() => {
+    if (step === 4) {
+      const timer = setTimeout(() => setStep(5), 2500)
+      return () => clearTimeout(timer)
+    }
+  }, [step])
+
   const startDemo = async () => {
     setStep(1)
     const res = await fetch('/api/demo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ scenario: scenarioId }) })
@@ -263,13 +270,47 @@ export default function Demo() {
                 {marketResult.riskScore >= 80 && (
                   <div className="result-sar"><span>📋 SAR Auto-Filed: SAR-{marketResult.transactionId}</span><button onClick={exportSarPdf} className="btn-export">Export PDF</button></div>
                 )}
+                {step === 3 && <button onClick={() => setStep(4)} className="btn-next-scene">Next: Cross-Bank Detection →</button>}
+              </div>
+            )}
+
+            {step >= 4 && (
+              <div className="cinema-scene2">
+                <div className="scene2-divider">
+                  <span className="scene2-time">⏱ 30 minutes later...</span>
+                </div>
+                <div className={`cinema-alert scene2-alert ${step >= 4 ? 'visible' : ''}`}>
+                  <div className="alert-icon">🚨</div>
+                  <div className="alert-content">
+                    <h2>Same Fraudster Detected at Bank B</h2>
+                    <div className="alert-title">Crypto Wire Transfer</div>
+                    <div className="alert-meta"><span>$18,500</span><span>→</span><span>KuCoin (Crypto Exchange)</span></div>
+                    <div className="alert-flags">
+                      <span className="flag flag-network">🔗 Known pattern from network</span>
+                      <span className="flag">⚠️ Matching fraud signature</span>
+                      <span className="flag">⚠️ Flagged by 4 institutions</span>
+                    </div>
+                  </div>
+                  <div className="alert-tx">INSTANT</div>
+                </div>
+                {step >= 5 && (
+                  <div className="cinema-result scene2-result">
+                    <div className="result-score"><div className="score-number">94<span>%</span></div><div className="score-label">Network Risk Score (Pre-Transaction)</div></div>
+                    <div className="result-decision danger"><span>🚨</span><span>AUTO-BLOCKED · ZERO DELAY</span></div>
+                    <div className="scene2-impact">
+                      <div className="impact-item"><span className="impact-num">0s</span><span className="impact-lbl">Detection Time</span></div>
+                      <div className="impact-item"><span className="impact-num">$18.5K</span><span className="impact-lbl">Loss Prevented</span></div>
+                      <div className="impact-item"><span className="impact-num">5</span><span className="impact-lbl">Banks Protected</span></div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
         )}
       </main>
 
-      {step === 3 && marketResult && (
+      {(step === 3 || step === 5) && marketResult && (
         <footer className="cinema-footer">
           <span className="proof-badge">✓ Verified on Canton DevNet</span>
           <div className="proof-txs">{marketResult.votes.filter(v => v.txId).map((v, i) => <span key={i} className="proof-tx">{v.bank}: {v.txId!.slice(0, 8)}...</span>)}</div>
