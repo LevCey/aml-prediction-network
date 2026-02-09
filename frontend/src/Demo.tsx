@@ -306,7 +306,7 @@ export default function Demo() {
                     <div className="result-score"><div className="score-number">94<span>%</span></div><div className="score-label">Network Risk Score (Pre-Transaction)</div></div>
                     <div className="result-decision danger"><span>🚨</span><span>AUTO-BLOCKED · ZERO DELAY</span></div>
                     <div className="scene2-impact">
-                      <div className="impact-item"><span className="impact-num">0s</span><span className="impact-lbl">Detection Time</span></div>
+                      <div className="impact-item"><span className="impact-num">Instant</span><span className="impact-lbl">Detection Time</span></div>
                       <div className="impact-item"><span className="impact-num">$18.5K</span><span className="impact-lbl">Loss Prevented</span></div>
                       <div className="impact-item"><span className="impact-num">5</span><span className="impact-lbl">Banks Protected</span></div>
                     </div>
