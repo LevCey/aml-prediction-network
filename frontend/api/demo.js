@@ -48,7 +48,7 @@ export default async function handler(req, res) {
       { key: 'wells', name: 'Wells Fargo', stake: 150 },
       { key: 'citi', name: 'Citibank', stake: 120 },
       { key: 'jpmorgan', name: 'JPMorgan Chase', stake: 250 },
-      { key: 'fincen', name: 'FinCEN', stake: 300, isRegulator: true }
+      { key: 'fincen', name: 'FinCEN', stake: 0, isRegulator: true }
     ];
 
     for (const bank of bankConfig) {

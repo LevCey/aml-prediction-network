@@ -270,7 +270,7 @@ export default function Demo() {
                 {marketResult.riskScore >= 80 && (
                   <div className="result-sar"><span>📋 SAR Auto-Filed: SAR-{marketResult.transactionId}</span><button onClick={exportSarPdf} className="btn-export">Export PDF</button></div>
                 )}
-                {step === 3 && <button onClick={() => setStep(4)} className="btn-next-scene">Next: Cross-Bank Detection →</button>}
+                {step === 3 && marketResult.riskScore >= 80 && <button onClick={() => setStep(4)} className="btn-next-scene">Next: Cross-Bank Detection →</button>}
               </div>
             )}
 
