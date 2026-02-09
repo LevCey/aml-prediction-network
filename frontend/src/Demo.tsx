@@ -203,8 +203,8 @@ export default function Demo() {
               <span className="hero-from">95%</span>
               <span className="hero-arrow">→</span>
               <span className="hero-to">~65%</span>
-              <div className="hero-label">False Positive Rate · Projected 30% Reduction</div>
             </div>
+            <div className="hero-label">False Positive Rate · Projected 30% Reduction</div>
             <div className="cinema-comparison">
               <div className="compare-box compare-without">
                 <h3>❌ Without AML Network</h3>
