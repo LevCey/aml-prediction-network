@@ -142,9 +142,9 @@
 .compare-box h3 { font-size: 18px; margin-bottom: 16px; }
 .compare-box ul { list-style: none; padding: 0; margin: 0; }
 .compare-box li { padding: 8px 0; color: var(--text-secondary); font-size: 15px; }
-.compare-without { border-color: var(--danger); }
+.compare-without { border-color: var(--danger); background: rgba(239, 68, 68, 0.08); }
 .compare-without h3 { color: var(--danger); }
-.compare-with { border-color: var(--success); }
+.compare-with { border-color: var(--success); background: rgba(16, 185, 129, 0.08); }
 .compare-with h3 { color: var(--success); }
 
 .cinema-controls {

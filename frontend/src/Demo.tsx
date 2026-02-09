@@ -202,17 +202,17 @@ export default function Demo() {
             <div className="hero-stat">
               <span className="hero-from">95%</span>
               <span className="hero-arrow">→</span>
-              <span className="hero-to">12%</span>
-              <div className="hero-label">False Positive Reduction</div>
+              <span className="hero-to">~65%</span>
+              <div className="hero-label">False Positive Rate · Projected 30% Reduction</div>
             </div>
             <div className="cinema-comparison">
               <div className="compare-box compare-without">
                 <h3>❌ Without AML Network</h3>
-                <ul><li><strong className="stat-bad">95%</strong> false positive rate</li><li>Banks operate in silos</li><li>Days to detect fraud</li><li>Fraudster moves freely</li></ul>
+                <ul><li><strong className="stat-bad">95%</strong> false positive rate</li><li>Each bank detects alone</li><li>Post-transaction detection (days/weeks)</li><li>Fraudsters cycle between banks</li></ul>
               </div>
               <div className="compare-box compare-with">
                 <h3>✅ With AML Network</h3>
-                <ul><li><strong className="stat-good">12%</strong> false positive rate</li><li>Shared intelligence</li><li>Real-time detection</li><li>Instant blocking</li></ul>
+                <ul><li><strong className="stat-good">~65%</strong> false positive rate (projected)</li><li>Cross-bank intelligence network</li><li>Pre-transaction risk scoring</li><li>Proactive fraud prevention</li></ul>
               </div>
             </div>
             <div className="cinema-controls">

@@ -214,7 +214,7 @@ function PredictionMarketView({ devnet }: { devnet: DevnetStats }) {
         <div className="market-stat"><span className="stat-num">47</span><span className="stat-lbl">Total Markets</span></div>
         <div className="market-stat"><span className="stat-num">12</span><span className="stat-lbl">Blocked</span></div>
         <div className="market-stat"><span className="stat-num">89%</span><span className="stat-lbl">Accuracy</span></div>
-        <div className="market-stat"><span className="stat-num">-68%</span><span className="stat-lbl">False Positives</span></div>
+        <div className="market-stat"><span className="stat-num">-30%</span><span className="stat-lbl">False Positives</span></div>
       </div>
 
       <h3>Recent Markets</h3>
