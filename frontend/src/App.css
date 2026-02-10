@@ -884,8 +884,8 @@ body {
 /* Markets list */
 .markets-list { display: flex; flex-direction: column; gap: 16px; }
 .market-info-box { background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 10px; padding: 20px; margin-bottom: 24px; }
-.market-info-box h3 { margin-bottom: 8px; color: #60a5fa; font-size: 16px; }
-.market-info-box p { color: #cbd5e1; line-height: 1.6; }
+.market-info-box h3 { margin-bottom: 8px; color: #2563eb; font-size: 16px; font-weight: 600; }
+.market-info-box p { color: #1e293b; line-height: 1.6; }
 
 .market-card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 20px; }
 .market-card.resolved { border-left: 3px solid #64748b; }
