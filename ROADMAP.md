@@ -97,6 +97,40 @@ template PredictionMarket
 
 ---
 
+## 🧠 Phase 3: Federated Learning Integration
+
+### Why FL?
+> Prediction markets capture human intelligence. FL captures machine intelligence. Together = hybrid intelligence no competitor offers.
+
+### Architecture
+- Canton = coordination/governance/audit layer (Daml contracts manage FL rounds)
+- ML training = off-chain on each bank's infrastructure (Python/Flower framework)
+- Model updates = shared via Canton's encrypted messaging (sync domains are blind to content)
+- Aggregation = off-chain service, verified/coordinated by Daml contracts
+
+### Implementation Steps
+- [ ] `FederatedLearningRound` Daml template (round management, participant registration)
+- [ ] `ModelUpdateSubmission` Daml template (hash verification, encrypted weight sharing)
+- [ ] Flower framework integration (off-chain FL training bridge)
+- [ ] FL model output → Prediction Market input (enhanced bank vote accuracy)
+- [ ] Closed-loop: market outcomes feed back into FL model training
+- [ ] Differential privacy on model updates before aggregation
+
+### Real-World Validation
+| Deployment | Result |
+|------------|--------|
+| Singapore MAS/COSMIC | 60-70% false positive reduction, 3x faster investigations |
+| Hong Kong HKMA (Airstar/livi) | Cross-bank AML pilot with FL |
+| Banking Circle (EU) | Improved detection in cross-border payments |
+| Australia (Regional/Beyond Bank) | Community banks using collective FL intelligence |
+
+### Key Differentiator
+- Consilient = FL only
+- Polymarket = Prediction markets only
+- **AML Prediction Network = FL + Prediction Markets on Canton** (unique in market)
+
+---
+
 ## 🎤 Key Demo Messages
 
 1. **"The auditor can see everything, but cannot take any action."**

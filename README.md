@@ -274,6 +274,39 @@ Scene 3: Regulator Review
 
 ---
 
+## Roadmap
+
+### Phase 1: MVP ✅ (Hackathon)
+- Prediction market contracts (Daml)
+- Weighted risk scoring
+- Pattern library
+- Privacy dashboard & regulator observer mode
+- SAR auto-filing & audit log
+
+### Phase 2: Enhanced Network (Current)
+- Pattern similarity scoring
+- Automatic participant selection
+- Multi-bank demo simulation
+- Network effects dashboard
+
+### Phase 3: Federated Learning Integration
+- **Federated ML layer** — Banks collaboratively train fraud detection models without sharing raw data
+- **Canton as FL coordinator** — Daml contracts manage FL rounds, participant registration, and aggregation rules
+- **Off-chain ML training** — Each bank trains locally (Python/Flower), only encrypted model updates shared via Canton
+- **Hybrid intelligence** — FL model outputs feed into prediction markets, improving bank vote accuracy
+- **Closed-loop learning** — Market outcomes (confirmed fraud/legit) feed back into FL model training
+- **Differential privacy** — Additional privacy guarantees on model updates before aggregation
+
+```
+Bank A (local training) ──┐
+Bank B (local training) ──┤── Canton Network ──▶ Aggregated Model ──▶ Prediction Market
+Bank C (local training) ──┘   (coordination)     (shared intelligence)  (enhanced votes)
+```
+
+> Inspired by real-world deployments: Singapore MAS/COSMIC, Hong Kong HKMA pilots, Banking Circle (EU). FL has demonstrated 60-80% false positive reduction and up to 300% detection improvement in production environments.
+
+---
+
 ## Team
 
 **Solo Developer** (hackathon submission)
