@@ -17,7 +17,7 @@
 
 ## Problem Statement
 
-Financial institutions lose **$180B annually** to compliance costs, with **95% false positive rates** in AML systems. Fraudsters share information across dark web networks, but banks cannot coordinate due to:
+Financial institutions spend **$206B annually** on financial crime compliance (LexisNexis, 2023), with **95% false positive rates** in AML systems. Fraudsters share information across dark web networks, but banks cannot coordinate due to:
 
 - **Bank Secrecy Act**: Customer data cannot be shared
 - **GDPR/Privacy Laws**: Strict data protection requirements
@@ -298,7 +298,7 @@ Open to collaboration! Looking for:
 - Privacy-preserving smart contracts
 
 **Market Research**
-- Global AML compliance costs: $180B+ annually
+- Global AML compliance costs: $206B+ annually (LexisNexis, 2023)
 - False positive rates in traditional systems: 95%+
 - Financial crime detection accuracy improvements with collaborative networks
 
