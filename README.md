@@ -8,6 +8,8 @@
 
 **Live Demo:** [https://amlprediction.network](https://amlprediction.network)
 
+**Pitch Deck:** [Google Slides](https://docs.google.com/presentation/d/1QeAzXsDw32-4pzpfxsuMirPDRZPryVMPpGeKwzSHwlc/edit?usp=sharing)
+
 **Video:** [https://youtu.be/OnXVF5nY2yI](https://youtu.be/OnXVF5nY2yI)
 
 ![Dashboard Screenshot](assets/images/dashboard-screenshot.png)
