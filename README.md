@@ -1,347 +1,215 @@
 # AML Prediction Network
 
-**Privacy-Preserving Fraud Detection for Financial Institutions**
+**From Shared Ledgers to Shared Judgment**
 
-🏆 **Canton Catalyst 2026 Winner** - Currently in Mentorship Program
+A privacy-preserving coordination layer that turns isolated institutional judgments into shared probabilistic awareness — built on Canton Network.
 
-**Landing Page:** [https://amlprediction.com](https://amlprediction.com)
+🏆 **Canton Catalyst 2026 Winner** — Currently in Mentorship Program
 
-**Live Demo:** [https://amlprediction.network](https://amlprediction.network)
-
-**Pitch Deck:** [Google Slides](https://docs.google.com/presentation/d/1QeAzXsDw32-4pzpfxsuMirPDRZPryVMPpGeKwzSHwlc/edit?usp=sharing)
-
-**Video:** [https://youtu.be/OnXVF5nY2yI](https://youtu.be/OnXVF5nY2yI)
+**Landing Page:** [amlprediction.com](https://amlprediction.com)
+**Live Demo:** [amlprediction.network](https://amlprediction.network)
+**Video:** [youtu.be/OnXVF5nY2yI](https://youtu.be/OnXVF5nY2yI)
 
 ![Dashboard Screenshot](assets/images/dashboard-screenshot.png)
 
+---
+
+## The Problem
+
+Financial crime detection fails not because institutions lack analytics, but because each institution observes only a partial transaction graph. Regulatory and competitive boundaries prevent raw data sharing. Risk becomes visible only when signals are combined — yet combination is exactly what the law prohibits.
+
+**What this looks like in practice:**
+
+```
+Monday  9:00 AM — Bank A flags a suspicious $25K wire transfer
+Monday  9:30 AM — Same person opens an account at Bank B
+Monday 10:00 AM — Moves $40K through Bank B, undetected
+Monday 11:00 AM — Funds exit through Bank C to an offshore account
+```
+
+Bank A had the suspicion. But it could not share it — not because of technology, but because of regulation. Each bank was forced to decide alone, with incomplete information.
+
+**The result:** $206B annual compliance spend, 95% false positive rates, and the same fraudsters cycling through multiple banks undetected.
+
+This is not an analytics problem. It is a coordination failure.
 
 ---
 
-## Problem Statement
+## The Solution
 
-Financial institutions spend **$206B annually** on financial crime compliance (LexisNexis, 2023), with **95% false positive rates** in AML systems. Fraudsters share information across dark web networks, but banks cannot coordinate due to:
+AML Prediction Network introduces **probabilistic risk signaling** — a coordination primitive where institutions share calibrated confidence, not data.
 
-- **Bank Secrecy Act**: Customer data cannot be shared
-- **GDPR/Privacy Laws**: Strict data protection requirements
-- **Siloed Systems**: Each bank operates independently
-- **Slow Response**: Days/weeks to detect repeat offenders
+```
+┌──────────┐   ┌──────────┐   ┌──────────┐
+│  Bank A   │   │  Bank B   │   │  Bank C   │
+│ confidence│   │ confidence│   │ confidence│
+│  signal   │   │  signal   │   │  signal   │
+└─────┬─────┘   └─────┬─────┘   └─────┬─────┘
+      │               │               │
+      └───────────────┼───────────────┘
+                      ▼
+        ┌──────────────────────────┐
+        │     Canton Network       │
+        │  (privacy-preserving     │
+        │   aggregation layer)     │
+        └────────────┬─────────────┘
+                     ▼
+          ┌─────────────────────┐
+          │  Shared Risk Score  │
+          │  (collective output)│
+          └─────────────────────┘
+```
 
-**Result**: Same fraudsters cycle through multiple banks undetected.
+Each institution computes a local probability estimate about a risk hypothesis. They do not share transaction data, customer information, or internal model outputs. Instead, they submit a structured belief commitment.
+
+The network aggregates these into a single risk outcome that all participants can rely on — without any participant learning another's private reasoning.
+
+**This converts isolated detection into collective inference.**
 
 ---
 
-## Solution
+## Why Canton
 
-**AML Prediction Network** leverages **Canton Network** to create a privacy-preserving, collaborative fraud detection system using **prediction markets**.
+This mechanism requires properties unavailable in traditional infrastructure:
 
-### Key Features
+- **Selective visibility** — participants only see what they are permitted to see
+- **Multi-party workflow execution** — decisions are jointly formed, not centrally computed
+- **Shared state transition** — everyone relies on the same outcome
+- **Institutional permissioning** — regulated entities, not anonymous actors
 
-1. **Privacy-Preserving Pattern Sharing**
-   - Banks share fraud patterns, NOT customer PII
-   - Canton's selective disclosure ensures compliance
-   - Zero-knowledge proofs validate patterns without exposing data
+Public blockchains expose too much state. Traditional databases cannot coordinate across mutually untrusted parties.
 
-2. **Real-Time Prediction Markets**
-   - Banks stake predictions on transaction fraud likelihood
-   - Weighted risk scores aggregated across network
-   - Incentive alignment: Correct predictions rewarded
-
-3. **Regulatory Compliance**
-   - BSA Section 314(b) compliant
-   - GDPR-friendly (no personal data sharing)
-   - Immutable audit trail for regulators
-   - Auto-SAR filing at threshold
-
-4. **Network Effects**
-   - Each new bank increases detection accuracy
-   - Collective intelligence grows exponentially
-   - First-mover advantage = defensible moat
+Canton enables coordination without disclosure.
 
 ---
 
-## 🏗️ Architecture
+## What's Implemented
 
-```
-┌─────────────────────────────────────────────┐
-│         AML Prediction Network              │
-├─────────────────────────────────────────────┤
-│                                             │
-│  ┌──────┐  ┌──────┐  ┌──────┐  ┌──────┐   │
-│  │Bank A│  │Bank B│  │Bank C│  │Bank D│   │
-│  └───┬──┘  └───┬──┘  └───┬──┘  └───┬──┘   │
-│      │         │         │         │       │
-│  ┌───▼─────────▼─────────▼─────────▼───┐   │
-│  │   Canton Network (Privacy Layer)   │   │
-│  └───┬─────────────────────────────┬───┘   │
-│      │                             │       │
-│  ┌───▼─────────────────────────────▼───┐   │
-│  │   Prediction Market Contracts      │   │
-│  │   (Daml Smart Contracts)           │   │
-│  └───┬─────────────────────────────┬───┘   │
-│      │                             │       │
-│  ┌───▼─────────────────────────────▼───┐   │
-│  │   Aggregated Risk Scores           │   │
-│  └─────────────────────────────────────┘   │
-│                                             │
-└─────────────────────────────────────────────┘
-```
+This prototype demonstrates:
+
+- Multi-party Daml contracts for belief commitments
+- Privacy-scoped risk signal submission
+- Weighted aggregation with reputation scoring
+- SAR auto-filing at configurable thresholds
+- Regulator observer mode (read-only audit trail)
+- Interactive demo environment
+- Canton DevNet deployment
+
+### Smart Contracts
+
+| Contract | Purpose |
+|----------|---------|
+| `PredictionMarket.daml` | Belief submission, weighted risk scoring, SAR triggers |
+| `BankReputation.daml` | Prediction accuracy tracking, voting weight adjustment |
+| `TransactionPattern.daml` | Fraud pattern templates, suspicious transaction matching |
+| `Setup.daml` | DevNet party setup (banks, regulator, operator) |
 
 ---
 
-## How Prediction Markets Work
+## Running the Prototype
 
-### Example Scenario
+### Prerequisites
+- Canton SDK / DevNet
+- Daml SDK 2.x
+- Node.js 18+
+- Docker (optional)
 
-**1. Suspicious Transaction Detected**
-```
-Customer X: $25K wire to crypto exchange
-- First time crypto user
-- Account opened 2 weeks ago
-- High-risk jurisdiction
-```
-
-**2. Market Created**
-```
-Binary prediction: "Is this fraud?"
-Deadline: 24 hours
-Initial odds: 50/50
+### 1. Start Canton Sandbox
+```bash
+cd daml/aml-network
+daml start
 ```
 
-**3. Banks Submit Predictions**
-```
-Bank A: 70% fraud (stakes $100)
-Bank B: 30% fraud (stakes $50)
-Bank C: 80% fraud (stakes $200)
-Bank D: 45% fraud (stakes $75)
+### 2. Deploy Contracts
+```bash
+daml deploy --participant participant1
 ```
 
-**4. Weighted Risk Score**
-```
-(70×100 + 30×50 + 80×200 + 45×75) / 425 = 65%
-
-Action:
-- >80% → Auto-block + manual review
-- 60-80% → Enhanced due diligence
-- <40% → Pass through
+### 3. Run Frontend
+```bash
+cd frontend
+npm install
+npm run dev
 ```
 
-**5. Resolution & Rewards**
-```
-Outcome: Confirmed fraud
-Winners: Banks A, C (high confidence + correct)
-Losers: Banks B, D (penalties applied)
-Reputation scores updated
-```
+### 4. Simulate Participants
 
----
-
-## Regulatory Compliance
-
-| Regulation | Challenge | Our Solution |
-|------------|-----------|--------------|
-| **Bank Secrecy Act** | Cannot share customer data | Share patterns, not PII |
-| **Section 314(b)** | Requires FinCEN approval | Pre-approved framework with regulator nodes |
-| **GDPR** | Right to be forgotten | Personal data stays local, only aggregated patterns shared |
-| **KYC Requirements** | Duplicate effort across banks | Optional shared KYC utility with consent |
-| **SAR Reporting** | One-way reporting to FinCEN | Bi-directional intelligence + auto-filing |
-
----
-
-## Business Model
-
-### Target Customers
-
-1. **Tier 1 Banks**: $100K-500K/year → Access to network intelligence
-2. **Regional Banks**: $10K-50K/year → Level playing field against big players
-3. **Fintechs**: API access fee → Fast KYC/AML onboarding
-4. **Regulators**: Free observer nodes → Real-time supervision
-
-### Revenue Streams
-
-- Subscription fees (tiered by institution size)
-- Transaction prediction fees
-- Pattern tokenization/listing fees
-- API access for third-party integrations
-
-### ROI for Banks
-
-- **Cost Savings**: 30% reduction in false positives = $50B+ industry-wide
-- **Risk Reduction**: Real-time detection vs. weeks/months delay
-- **Compliance**: Automated SAR filing and audit trails
-
----
-
-## MVP Features (Hackathon Scope)
-
-### Core Functionality
-
-- [x] **Transaction Risk Prediction Market**
-  - Submit anonymized suspicious transactions
-  - Banks vote on fraud probability
-  - Weighted risk score calculation
-  - Basic reward/penalty mechanism
-
-- [x] **Pattern Library**
-  - 5-10 common fraud patterns (pre-loaded)
-  - Banks submit new patterns (anonymized)
-  - Pattern matching algorithm
-  - Similarity scoring
-
-- [x] **Privacy Dashboard**
-  - Transparency: What data is shared?
-  - Consent management
-  - Audit log viewer
-
-- [x] **Regulator Observer Mode**
-  - Read-only access
-  - Network statistics
-  - Compliance report generation
-
-### Demo Scenario
-
-```
-Scene 1: Fraudster Hits Bank A
-→ Bank A detects pattern, shares anonymously
-→ Network learns fraud signature
-
-Scene 2: Same Fraudster Tries Bank B (30 mins later)
-→ Instant alert: "Known pattern detected"
-→ Risk score: 85%
-→ Transaction auto-blocked
-
-Scene 3: Regulator Review
-→ Audit trail shows decision rationale
-→ BSA/GDPR compliant
-→ Saved Bank B $50K loss
-```
+Submit risk signals via frontend UI, Daml script, or REST API. Aggregated output updates in real time.
 
 ---
 
 ## Tech Stack
 
-**Smart Contracts**
-- Daml 2.x (Canton Network SDK)
-- Multi-party computation contracts
-- Privacy-preserving logic
-
-**Backend**
-- Node.js / Python (Canton integration)
-- PostgreSQL (local bank data)
-- REST API for bank integrations
-
-**Frontend**
-- React + TypeScript
-- Recharts (risk visualization)
-- D3.js (transaction flow maps)
-
-**Privacy Layer**
-- Canton Network selective disclosure
-- Differential privacy (pattern aggregation)
-- Zero-knowledge proofs (stretch goal)
-
-**DevOps**
-- Docker containers
-- Canton local sandbox
-- CI/CD with GitHub Actions
+| Layer | Technology |
+|-------|-----------|
+| Smart Contracts | Daml 2.x (Canton Network SDK) |
+| Backend | Node.js, Python (Canton integration) |
+| Frontend | React + TypeScript, Recharts |
+| Privacy | Canton selective disclosure, differential privacy |
+| Deployment | Vercel (frontend), Canton DevNet (contracts) |
 
 ---
 
-## Success Metrics
+## Scope & Intent
 
-### Hackathon Judges
+This prototype validates a coordination mechanism: can independent institutions form a shared risk judgment without sharing data?
 
-- ✅ Solves real-world problem (not toy example)
-- ✅ Canton-native (impossible without Canton)
-- ✅ Regulatory compliance demonstrated
-- ✅ Working prototype with live demo
-- ✅ Clear business model + GTM strategy
+Production deployment, banking integrations, and regulatory reporting pipelines are future engineering challenges — not current scope.
 
-### Real-World Impact
-
-- **Fraud Detection Accuracy**: +20% improvement
-- **False Positive Reduction**: -30% (saves $50B+ annually)
-- **Detection Speed**: 24 hours → Real-time
-- **Network Effects**: Value grows exponentially with each bank
-
----
-
-## Competitive Differentiation
-
-| Competitor | Limitation | Our Advantage |
-|------------|-----------|---------------|
-| **Traditional AML (FICO, SAS)** | Siloed, no network effects | Collective intelligence, gets smarter |
-| **Blockchain Analytics (Chainalysis)** | Public chains only, post-facto | Traditional banking, real-time prevention |
-| **Info Sharing (SWIFT, FIN-ISAC)** | Slow, manual, limited privacy | Automated, privacy-preserving, real-time |
-| **Prediction Markets (Polymarket)** | Not compliant, retail focus | Regulation-first, B2B, institutional |
+The focus is mechanism validity, not operational completeness.
 
 ---
 
 ## Roadmap
 
-### Phase 1: MVP ✅ (Hackathon)
-- Prediction market contracts (Daml)
-- Weighted risk scoring
-- Pattern library
-- Privacy dashboard & regulator observer mode
-- SAR auto-filing & audit log
+**Phase 1: Prototype** ✅
+Daml contracts, weighted aggregation, reputation scoring, demo environment, DevNet deployment
 
-### Phase 2: Enhanced Network (Current)
-- Pattern similarity scoring
-- Automatic participant selection
-- Multi-bank demo simulation
-- Network effects dashboard
+**Phase 2: Mechanism Hardening** (Current)
+Adversarial testing, expanded participant simulation, regulator feedback integration
 
-### Phase 3: Federated Learning Integration
-- **Federated ML layer** — Banks collaboratively train fraud detection models without sharing raw data
-- **Canton as FL coordinator** — Daml contracts manage FL rounds, participant registration, and aggregation rules
-- **Off-chain ML training** — Each bank trains locally (Python/Flower), only encrypted model updates shared via Canton
-- **Hybrid intelligence** — FL model outputs feed into prediction markets, improving bank vote accuracy
-- **Closed-loop learning** — Market outcomes (confirmed fraud/legit) feed back into FL model training
-- **Differential privacy** — Additional privacy guarantees on model updates before aggregation
+**Phase 3: Generalization**
+Federated model-assisted belief generation, adaptive hypothesis markets, extension beyond AML to sanctions, credit risk, and market abuse signaling
 
-```
-Bank A (local training) ──┐
-Bank B (local training) ──┤── Canton Network ──▶ Aggregated Model ──▶ Prediction Market
-Bank C (local training) ──┘   (coordination)     (shared intelligence)  (enhanced votes)
-```
+The long-term vision: a financial system where institutions coordinate knowledge without surrendering sovereignty.
 
-> Inspired by real-world deployments: Singapore MAS/COSMIC, Hong Kong HKMA pilots, Banking Circle (EU). FL has demonstrated 60-80% false positive reduction and up to 300% detection improvement in production environments.
+---
+
+## Research Direction
+
+AML is the first application, not the final one. The same coordination primitive applies wherever regulated parties must form shared judgments under privacy constraints:
+
+- Market abuse signaling
+- Credit risk coordination
+- Sanctions intelligence sharing
+- Interbank liquidity stress detection
+
+---
+
+## Related Materials
+
+- [Light Paper](LIGHT_PAPER.md) — Mechanism design and theoretical foundation
+- [Roadmap](ROADMAP.md) — Development milestones
+- [Architecture](docs/architecture.md) — System design
+- [Project Structure](PROJECT_STRUCTURE.md) — Repository layout
 
 ---
 
 ## Team
 
-**Solo Developer** (hackathon submission)
+**Levent** — Founder & Builder
+Full-stack: Daml, React, Node, Python
 
-Open to collaboration! Looking for:
-- Compliance/AML domain experts
+Open to collaboration — looking for:
+- AML/compliance domain experts
 - Canton/Daml developers
-- Frontend React developers
-
----
-
-## Resources
-
-**Regulatory References**
-- FinCEN Section 314(b) Fact Sheet
-- EU 6th AML Directive (Directive 2018/1673)
-- Bank Secrecy Act Guidelines
-
-**Technical Documentation**
-- [Daml Documentation](https://docs.daml.com/)
-- Canton Network Documentation
-- Privacy-preserving smart contracts
-
-**Market Research**
-- Global AML compliance costs: $206B+ annually (LexisNexis, 2023)
-- False positive rates in traditional systems: 95%+
-- Financial crime detection accuracy improvements with collaborative networks
+- Design partners (institutions interested in pilot)
 
 ---
 
 ## License
 
-MIT License - Open source post-hackathon
+MIT License
 
 ---
 
