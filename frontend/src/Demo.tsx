@@ -4,12 +4,14 @@ import { jsPDF } from 'jspdf'
 import './Demo.css'
 
 const SCENARIOS = [
-  { id: 'high', label: '🔴 High Risk', title: 'Crypto Wire Transfer', amount: '$25,000', destination: 'Binance (Crypto Exchange)', customer: 'Customer #4821', flags: ['New account (< 30 days)', 'First crypto transaction', 'High-risk jurisdiction'] },
-  { id: 'medium', label: '🟡 Medium Risk', title: 'International Wire', amount: '$12,500', destination: 'Dubai Investment LLC', customer: 'Customer #7293', flags: ['Unusual amount pattern', 'New beneficiary'] },
-  { id: 'low', label: '🟢 Low Risk', title: 'Domestic Transfer', amount: '$3,200', destination: 'Verified Merchant', customer: 'Customer #1156', flags: ['Slightly above average'] },
+  { id: 'high', label: '🔴 High Risk', title: 'Crypto Wire Transfer', amount: '$25,000', destination: 'Crypto Exchange', customer: 'Entity #4821', flags: ['New account (< 30 days)', 'First crypto transaction', 'High-risk jurisdiction'] },
+  { id: 'medium', label: '🟡 Medium Risk', title: 'International Wire', amount: '$12,500', destination: 'Offshore Investment LLC', customer: 'Entity #7293', flags: ['Unusual amount pattern', 'New beneficiary'] },
+  { id: 'low', label: '🟢 Low Risk', title: 'Domestic Transfer', amount: '$3,200', destination: 'Verified Merchant', customer: 'Entity #1156', flags: ['Slightly above average'] },
 ]
 
-interface Vote { bank: string; confidence: number; stake: number; isRegulator?: boolean; txId?: string }
+const STEPS = ['Scenario', 'Detection', 'Aggregation', 'Decision', 'Cross-Bank']
+
+interface Vote { bank: string; confidence: number; weight: number; isRegulator?: boolean; txId?: string }
 interface MarketResult { transactionId: string; votes: Vote[]; riskScore: number; action: string }
 
 export default function Demo() {
@@ -21,14 +23,13 @@ export default function Demo() {
   const [displayScore, setDisplayScore] = useState(0)
 
   const scenario = SCENARIOS.find(s => s.id === scenarioId) || SCENARIOS[0]
-  const txCount = step >= 1 ? 1 + animatedPredictions.length : 0
 
   const liveRiskScore = (() => {
     if (!marketResult?.votes || animatedPredictions.length === 0) return 0
     const visible = marketResult.votes.filter((_, i) => animatedPredictions.includes(i)).filter(v => !v.isRegulator)
-    const totalStake = visible.reduce((s, v) => s + v.stake, 0)
-    const weightedSum = visible.reduce((s, v) => s + (v.confidence / 100) * v.stake, 0)
-    return totalStake > 0 ? Math.round((weightedSum / totalStake) * 1000) / 10 : 0
+    const totalWeight = visible.reduce((s, v) => s + v.weight, 0)
+    const weightedSum = visible.reduce((s, v) => s + (v.confidence / 100) * v.weight, 0)
+    return totalWeight > 0 ? Math.round((weightedSum / totalWeight) * 1000) / 10 : 0
   })()
 
   useEffect(() => {
@@ -92,6 +93,7 @@ export default function Demo() {
   }
 
   const decision = marketResult ? getDecision(marketResult.riskScore) : null
+  const activeStep = step === 0 ? 0 : step <= 1 ? 1 : step <= 2 ? 2 : step <= 3 ? 3 : 4
 
   const exportSarPdf = () => {
     if (!marketResult) return
@@ -100,88 +102,63 @@ export default function Demo() {
     const now = new Date()
     let y = 15
 
-    // Header
-    doc.setFillColor(30, 64, 170)
+    doc.setFillColor(15, 17, 19)
     doc.rect(0, 0, w, 35, 'F')
     doc.setTextColor(255, 255, 255)
     doc.setFontSize(18); doc.setFont('helvetica', 'bold')
     doc.text('SUSPICIOUS ACTIVITY REPORT', w / 2, 15, { align: 'center' })
     doc.setFontSize(10); doc.setFont('helvetica', 'normal')
-    doc.text('FinCEN Form 111 | AML Prediction Network', w / 2, 24, { align: 'center' })
+    doc.text('AML Prediction Network — Canton DevNet', w / 2, 24, { align: 'center' })
     doc.text(`Filing Date: ${now.toLocaleDateString('en-US')}`, w / 2, 31, { align: 'center' })
 
     doc.setTextColor(0, 0, 0)
     y = 45
 
-    // Section 1: Filing Institution
     doc.setFillColor(240, 240, 240)
     doc.rect(15, y, w - 30, 8, 'F')
     doc.setFontSize(11); doc.setFont('helvetica', 'bold')
-    doc.text('PART I - FILING INSTITUTION', 20, y + 6); y += 15
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(10)
-    doc.text('Filing Institution: JPMorgan Chase & Co.', 20, y); y += 6
-    doc.text('Institution Type: Bank Holding Company', 20, y); y += 6
-    doc.text('Primary Federal Regulator: OCC', 20, y); y += 6
-    doc.text(`SAR Reference: SAR-${marketResult.transactionId}`, 20, y); y += 12
-
-    // Section 2: Suspicious Activity
-    doc.setFillColor(240, 240, 240)
-    doc.rect(15, y, w - 30, 8, 'F')
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(11)
-    doc.text('PART II - SUSPICIOUS ACTIVITY INFORMATION', 20, y + 6); y += 15
+    doc.text('PART I — TRANSACTION DETAILS', 20, y + 6); y += 15
     doc.setFont('helvetica', 'normal'); doc.setFontSize(10)
     doc.text(`Transaction ID: ${marketResult.transactionId}`, 20, y); y += 6
-    doc.text(`Amount Involved: ${scenario.amount} USD`, 20, y); y += 6
-    doc.text(`Date of Activity: ${now.toLocaleDateString('en-US')}`, 20, y); y += 6
-    doc.text(`Destination: ${scenario.destination}`, 20, y); y += 10
+    doc.text(`Amount: ${scenario.amount} USD`, 20, y); y += 6
+    doc.text(`Destination: ${scenario.destination}`, 20, y); y += 6
+    doc.text(`Date: ${now.toLocaleDateString('en-US')}`, 20, y); y += 6
+    doc.text(`SAR Reference: SAR-${marketResult.transactionId}`, 20, y); y += 12
 
-    doc.setFont('helvetica', 'bold')
-    doc.text('Suspicious Activity Type:', 20, y); y += 6
-    doc.setFont('helvetica', 'normal')
-    doc.text('[X] Structuring / Money Laundering', 25, y); y += 5
-    doc.text('[X] Wire Transfer Fraud', 25, y); y += 5
-    doc.text('[X] Cryptocurrency / Virtual Currency', 25, y); y += 10
-
-    doc.setFont('helvetica', 'bold')
-    doc.text('Risk Indicators:', 20, y); y += 6
-    doc.setFont('helvetica', 'normal')
-    scenario.flags.forEach(f => { doc.text(`• ${f}`, 25, y); y += 5 })
-    y += 7
-
-    // Section 3: Network Analysis
     doc.setFillColor(240, 240, 240)
     doc.rect(15, y, w - 30, 8, 'F')
     doc.setFont('helvetica', 'bold'); doc.setFontSize(11)
-    doc.text('PART III - NETWORK RISK ASSESSMENT', 20, y + 6); y += 15
+    doc.text('PART II — RISK INDICATORS', 20, y + 6); y += 15
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(10)
+    scenario.flags.forEach(f => { doc.text(`• ${f}`, 25, y); y += 6 })
+    y += 7
+
+    doc.setFillColor(240, 240, 240)
+    doc.rect(15, y, w - 30, 8, 'F')
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(11)
+    doc.text('PART III — NETWORK RISK ASSESSMENT', 20, y + 6); y += 15
     doc.setFont('helvetica', 'normal'); doc.setFontSize(10)
     doc.text(`Aggregated Risk Score: ${marketResult.riskScore}%`, 20, y); y += 6
     doc.text(`Network Decision: ${decision?.text}`, 20, y); y += 6
     doc.text('Participating Institutions:', 20, y); y += 6
     marketResult.votes.filter(v => !v.isRegulator).forEach(v => {
-      doc.text(`  • ${v.bank}: ${v.confidence}% confidence ($${v.stake} stake)`, 25, y); y += 5
+      doc.text(`  • ${v.bank}: ${v.confidence}% confidence (weight: ${v.weight})`, 25, y); y += 5
     })
     y += 7
 
-    // Section 4: Ledger Verification
     doc.setFillColor(230, 255, 230)
     doc.rect(15, y, w - 30, 8, 'F')
     doc.setFont('helvetica', 'bold'); doc.setFontSize(11)
-    doc.text('PART IV - CANTON NETWORK VERIFICATION', 20, y + 6); y += 15
+    doc.text('PART IV — CANTON NETWORK VERIFICATION', 20, y + 6); y += 15
     doc.setFont('helvetica', 'normal'); doc.setFontSize(9)
-    doc.text('This SAR was generated through privacy-preserving consensus on Canton Network.', 20, y); y += 5
-    doc.text('All votes are cryptographically verified and immutably recorded.', 20, y); y += 8
-    doc.setFontSize(8)
-    marketResult.votes.filter(v => v.txId).slice(0, 3).forEach(v => {
-      doc.text(`${v.bank} TX: ${v.txId}`, 20, y); y += 4
-    })
+    doc.text('This SAR was generated through privacy-preserving belief aggregation on Canton Network.', 20, y); y += 5
+    doc.text('All signals are cryptographically verified and immutably recorded.', 20, y); y += 8
 
-    // Footer
     doc.setFillColor(50, 50, 50)
     doc.rect(0, 280, w, 17, 'F')
     doc.setTextColor(255, 255, 255)
     doc.setFontSize(8)
-    doc.text('CONFIDENTIAL - For Law Enforcement Use Only | BSA/AML Compliant | GDPR Article 6(1)(c)', w / 2, 287, { align: 'center' })
-    doc.text('Generated by AML Prediction Network | Canton Network DevNet', w / 2, 293, { align: 'center' })
+    doc.text('CONFIDENTIAL — Generated by AML Prediction Network | Canton Network DevNet', w / 2, 287, { align: 'center' })
 
     doc.save(`SAR-${marketResult.transactionId}.pdf`)
   }
@@ -196,37 +173,47 @@ export default function Demo() {
         <div className="cinema-status">
           <span className={`status-dot ${ledgerConnected ? 'connected' : 'disconnected'}`}></span>
           <span>Canton DevNet</span>
-          {txCount > 0 && <span className="tx-counter">⛓ {txCount} TX</span>}
         </div>
         {step > 0 && <button onClick={reset} className="btn-reset">↺ Reset</button>}
       </header>
 
+      {step > 0 && (
+        <div className="stepper">
+          {STEPS.map((label, i) => (
+            <div key={i} className={`stepper-item ${activeStep === i ? 'active' : activeStep > i ? 'done' : ''}`}>
+              <div className="stepper-dot">{activeStep > i ? '✓' : i + 1}</div>
+              <span className="stepper-label">{label}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
       <main className="cinema-stage">
         {step === 0 && (
           <div className="cinema-intro">
-            <h1>Privacy-Preserving Fraud Detection</h1>
-            <p>Real-time collaborative AML powered by Canton Network</p>
-            <div className="hero-stat">
-              <span className="hero-from">95%</span>
-              <span className="hero-arrow">→</span>
-              <span className="hero-to">~65%</span>
-            </div>
-            <div className="hero-label">False Positive Rate · Projected 30% Reduction</div>
-            <div className="cinema-comparison">
-              <div className="compare-box compare-without">
-                <h3>❌ Without AML Network</h3>
-                <ul><li><strong className="stat-bad">95%</strong> false positive rate</li><li>Each bank detects alone</li><li>Post-transaction detection (days/weeks)</li><li>Fraudsters cycle between banks</li></ul>
+            <h1>From Shared Ledgers to Shared Judgment</h1>
+            <p>See how institutions coordinate risk decisions without sharing data</p>
+            <div className="intro-mechanism">
+              <div className="mech-step">
+                <div className="mech-icon">🏦🏦🏦</div>
+                <div className="mech-text">Each institution computes a local confidence signal</div>
               </div>
-              <div className="compare-box compare-with">
-                <h3>✅ With AML Network</h3>
-                <ul><li><strong className="stat-good">~65%</strong> false positive rate (projected)</li><li>Cross-bank intelligence network</li><li>Pre-transaction risk scoring</li><li>Proactive fraud prevention</li></ul>
+              <div className="mech-arrow">→</div>
+              <div className="mech-step">
+                <div className="mech-icon">⚡</div>
+                <div className="mech-text">Canton aggregates signals with privacy boundaries</div>
+              </div>
+              <div className="mech-arrow">→</div>
+              <div className="mech-step">
+                <div className="mech-icon">🎯</div>
+                <div className="mech-text">Shared risk score emerges — no data disclosed</div>
               </div>
             </div>
             <div className="cinema-controls">
               <select value={scenarioId} onChange={e => setScenarioId(e.target.value)} className="scenario-select">
                 {SCENARIOS.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
               </select>
-              <button onClick={startDemo} className="btn-run">▶ Run Demo</button>
+              <button onClick={startDemo} className="btn-run">▶ Start Simulation</button>
             </div>
           </div>
         )}
@@ -236,7 +223,7 @@ export default function Demo() {
             <div className={`cinema-alert ${step >= 1 ? 'visible' : ''}`}>
               <div className="alert-icon">🚨</div>
               <div className="alert-content">
-                <h2>Suspicious Transaction Detected</h2>
+                <h2>Suspicious Activity Detected</h2>
                 <div className="alert-title">{scenario.title}</div>
                 <div className="alert-meta"><span>{scenario.amount}</span><span>→</span><span>{scenario.destination}</span></div>
                 <div className="alert-flags">{scenario.flags.map((f, i) => <span key={i} className="flag">⚠️ {f}</span>)}</div>
@@ -246,27 +233,27 @@ export default function Demo() {
 
             {step >= 2 && marketResult && (
               <div className="cinema-market">
-                <div className="market-header"><span>📊 Prediction Market</span><span className="live-badge">● LIVE</span></div>
+                <div className="market-header"><span>Risk Signal Aggregation</span><span className="live-badge">● LIVE</span></div>
                 <div className="market-votes">
                   {marketResult.votes.filter(v => !v.isRegulator).map((vote, i) => (
                     <div key={i} className={`vote-row ${animatedPredictions.includes(i) ? 'visible' : ''}`}>
                       <span className="vote-bank">🏦 {vote.bank}</span>
-                      <div className="vote-bar"><div className="vote-fill" style={{ width: `${vote.confidence}%`, background: vote.confidence > 70 ? '#ef4444' : vote.confidence > 50 ? '#f59e0b' : '#22c55e' }}></div></div>
+                      <div className="vote-bar"><div className="vote-fill" style={{ width: `${vote.confidence}%`, background: vote.confidence > 70 ? 'var(--danger)' : vote.confidence > 50 ? 'var(--warning)' : 'var(--success)' }}></div></div>
                       <span className="vote-pct">{vote.confidence}%</span>
-                      <span className="vote-stake">${vote.stake}</span>
+                      <span className="vote-weight">w: {vote.weight}</span>
                     </div>
                   ))}
                   {marketResult.votes.filter(v => v.isRegulator).map((vote, i) => (
                     <div key={`reg-${i}`} className={`vote-row observer-row ${animatedPredictions.includes(marketResult.votes.indexOf(vote)) ? 'visible' : ''}`}>
                       <span className="vote-bank">🏛️ {vote.bank}</span>
                       <div className="vote-bar"><div className="vote-fill observer-fill" style={{ width: '100%' }}></div></div>
-                      <span className="vote-pct" style={{ color: '#64748b' }}>—</span>
-                      <span className="vote-stake">Observer</span>
+                      <span className="vote-pct" style={{ color: 'var(--text-muted)' }}>—</span>
+                      <span className="vote-weight">Observer</span>
                     </div>
                   ))}
                 </div>
                 {animatedPredictions.length > 0 && step < 3 && (
-                  <div className="running-score"><span>Running Score:</span><span className={liveRiskScore >= 80 ? 'danger' : liveRiskScore >= 60 ? 'warning' : 'safe'}>{liveRiskScore}%</span></div>
+                  <div className="running-score"><span>Aggregated Score:</span><span className={liveRiskScore >= 80 ? 'danger' : liveRiskScore >= 60 ? 'warning' : 'safe'}>{liveRiskScore}%</span></div>
                 )}
               </div>
             )}
@@ -290,12 +277,12 @@ export default function Demo() {
                 <div className={`cinema-alert scene2-alert ${step >= 4 ? 'visible' : ''}`}>
                   <div className="alert-icon">🚨</div>
                   <div className="alert-content">
-                    <h2>Same Fraudster Detected at Bank B</h2>
+                    <h2>Same Entity Detected at Bank B</h2>
                     <div className="alert-title">Crypto Wire Transfer</div>
-                    <div className="alert-meta"><span>$18,500</span><span>→</span><span>KuCoin (Crypto Exchange)</span></div>
+                    <div className="alert-meta"><span>$18,500</span><span>→</span><span>Crypto Exchange</span></div>
                     <div className="alert-flags">
                       <span className="flag flag-network">🔗 Known pattern from network</span>
-                      <span className="flag">⚠️ Matching fraud signature</span>
+                      <span className="flag">⚠️ Matching risk signature</span>
                       <span className="flag">⚠️ Flagged by 4 institutions</span>
                     </div>
                   </div>
@@ -306,9 +293,9 @@ export default function Demo() {
                     <div className="result-score"><div className="score-number">94<span>%</span></div><div className="score-label">Network Risk Score (Pre-Transaction)</div></div>
                     <div className="result-decision danger"><span>🚨</span><span>AUTO-BLOCKED · ZERO DELAY</span></div>
                     <div className="scene2-impact">
-                      <div className="impact-item"><span className="impact-num">Instant</span><span className="impact-lbl">Detection Time</span></div>
+                      <div className="impact-item"><span className="impact-num">Instant</span><span className="impact-lbl">Detection</span></div>
                       <div className="impact-item"><span className="impact-num">$18.5K</span><span className="impact-lbl">Loss Prevented</span></div>
-                      <div className="impact-item"><span className="impact-num">5</span><span className="impact-lbl">Banks Protected</span></div>
+                      <div className="impact-item"><span className="impact-num">4</span><span className="impact-lbl">Institutions Coordinated</span></div>
                     </div>
                   </div>
                 )}
@@ -321,7 +308,6 @@ export default function Demo() {
       {(step === 3 || step === 5) && marketResult && (
         <footer className="cinema-footer">
           <span className="proof-badge">✓ Verified on Canton DevNet</span>
-          <div className="proof-txs">{marketResult.votes.filter(v => v.txId).map((v, i) => <span key={i} className="proof-tx">{v.bank}: {v.txId!.slice(0, 8)}...</span>)}</div>
         </footer>
       )}
     </div>

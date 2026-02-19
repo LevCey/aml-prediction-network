@@ -44,22 +44,22 @@ export default async function handler(req, res) {
   try {
     const votes = [];
     const bankConfig = [
-      { key: 'bofa', name: 'Bank of America', stake: 200 },
-      { key: 'wells', name: 'Wells Fargo', stake: 150 },
-      { key: 'citi', name: 'Citibank', stake: 120 },
-      { key: 'jpmorgan', name: 'JPMorgan Chase', stake: 250 },
-      { key: 'fincen', name: 'FinCEN', stake: 0, isRegulator: true }
+      { key: 'bankA', name: 'Bank A', weight: 1.8 },
+      { key: 'bankB', name: 'Bank B', weight: 1.5 },
+      { key: 'bankC', name: 'Bank C', weight: 1.2 },
+      { key: 'bankD', name: 'Bank D', weight: 2.0 },
+      { key: 'regulator', name: 'Regulator', weight: 0, isRegulator: true }
     ];
 
     for (const bank of bankConfig) {
       const confidence = Math.min(0.95, Math.max(0.15, base + (Math.random() - 0.5) * variance * 2));
-      votes.push({ bank: bank.name, confidence: Math.round(confidence * 100), stake: bank.stake, isRegulator: bank.isRegulator });
+      votes.push({ bank: bank.name, confidence: Math.round(confidence * 100), weight: bank.weight, isRegulator: bank.isRegulator });
     }
 
     const nonRegVotes = votes.filter(v => !v.isRegulator);
-    const totalStake = nonRegVotes.reduce((s, v) => s + v.stake, 0);
-    const weightedSum = nonRegVotes.reduce((s, v) => s + (v.confidence / 100) * v.stake, 0);
-    const riskScore = Math.round((weightedSum / totalStake) * 1000) / 10;
+    const totalWeight = nonRegVotes.reduce((s, v) => s + v.weight, 0);
+    const weightedSum = nonRegVotes.reduce((s, v) => s + (v.confidence / 100) * v.weight, 0);
+    const riskScore = Math.round((weightedSum / totalWeight) * 1000) / 10;
 
     res.json({
       success: true, mode: 'canton-devnet', ledger: true,

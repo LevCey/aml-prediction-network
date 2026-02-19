@@ -197,7 +197,7 @@ AML is the first application, not the final one. The same coordination primitive
 
 ## Team
 
-**Levent** — Founder & Builder
+**Levent Ceyhan** — Founder & Builder (LeventLabs)
 Full-stack: Daml, React, Node, Python
 
 Open to collaboration — looking for:
