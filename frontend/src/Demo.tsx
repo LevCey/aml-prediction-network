@@ -268,12 +268,18 @@ export default function Demo() {
 
                 {userDecision && (
                   <div className="decision-outcome">
-                    <div className={`result-decision ${decision!.type}`}>
-                      <span>{decision!.icon}</span><span>{decision!.text}</span>
-                    </div>
-                    {(userDecision === 'block' || userDecision === 'flag') && marketResult.riskScore >= 60 && (
+                    {userDecision === 'block' && (
+                      <div className="result-decision danger"><span>🚨</span><span>BLOCK TRANSACTION</span></div>
+                    )}
+                    {userDecision === 'flag' && (
+                      <div className="result-decision warning"><span>📋</span><span>FLAGGED FOR SAR REVIEW</span></div>
+                    )}
+                    {userDecision === 'allow' && (
+                      <div className="result-decision success"><span>✅</span><span>TRANSACTION APPROVED</span></div>
+                    )}
+                    {(userDecision === 'block' || userDecision === 'flag') && (
                       <div className="result-sar">
-                        <span>📋 SAR Auto-Filed: SAR-{marketResult.transactionId}</span>
+                        <span>📋 SAR {userDecision === 'block' ? 'Auto-Filed' : 'Filed'}: SAR-{marketResult.transactionId}</span>
                         <button onClick={exportSarPdf} className="btn-export">Export PDF</button>
                       </div>
                     )}
