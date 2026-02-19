@@ -71,7 +71,7 @@ function MainDashboard() {
           <img src="/logo.jpg" alt="AML" className="header-logo" />
           <div>
             <h1>AML Prediction Network</h1>
-            <p className="subtitle">Privacy-Preserving Fraud Detection | Built on Canton Network</p>
+            <p className="subtitle">From Shared Ledgers to Shared Judgment | Built on Canton Network</p>
           </div>
         </div>
         <div className="header-right">
@@ -86,7 +86,7 @@ function MainDashboard() {
 
       <nav className="tabs">
         <button className={selectedTab === 'dashboard' ? 'tab active' : 'tab'} onClick={() => setSelectedTab('dashboard')}>Dashboard</button>
-        <button className={selectedTab === 'market' ? 'tab active' : 'tab'} onClick={() => setSelectedTab('market')}>Prediction Markets</button>
+        <button className={selectedTab === 'market' ? 'tab active' : 'tab'} onClick={() => setSelectedTab('market')}>Risk Signals</button>
         <button className={selectedTab === 'patterns' ? 'tab active' : 'tab'} onClick={() => setSelectedTab('patterns')}>Fraud Patterns</button>
         <button className={selectedTab === 'regulator' ? 'tab active' : 'tab'} onClick={() => setSelectedTab('regulator')}>Regulator View</button>
       </nav>
@@ -108,9 +108,9 @@ function MainDashboard() {
 function DashboardView({ devnet, loading }: { devnet: DevnetStats; loading: boolean }) {
   // Sample data for showcase - real devnet is connected but show examples
   const sampleContracts = [
-    { transactionId: 'TX-89234521', creator: 'JPMorgan Chase', votes: 5, isOpen: false, riskScore: 87.2, action: 'BLOCKED' },
-    { transactionId: 'TX-67891234', creator: 'Bank of America', votes: 5, isOpen: false, riskScore: 72.4, action: 'REVIEW' },
-    { transactionId: 'TX-45678901', creator: 'Wells Fargo', votes: 5, isOpen: true, riskScore: 34.1, action: 'APPROVED' },
+    { transactionId: 'TX-89234521', creator: 'Bank A', votes: 5, isOpen: false, riskScore: 87.2, action: 'BLOCKED' },
+    { transactionId: 'TX-67891234', creator: 'Bank B', votes: 5, isOpen: false, riskScore: 72.4, action: 'REVIEW' },
+    { transactionId: 'TX-45678901', creator: 'Bank C', votes: 5, isOpen: true, riskScore: 34.1, action: 'APPROVED' },
   ];
 
   const displayContracts = devnet.contracts.length > 0 ? devnet.contracts : sampleContracts;
@@ -142,11 +142,11 @@ function DashboardView({ devnet, loading }: { devnet: DevnetStats; loading: bool
       <h3>Network Participants</h3>
       <div className="participants-grid">
         {(devnet.parties.length > 0 ? devnet.parties : [
-          { name: 'FinCEN', isRegulator: true },
-          { name: 'JPMorgan Chase', isRegulator: false },
-          { name: 'Bank of America', isRegulator: false },
-          { name: 'Wells Fargo', isRegulator: false },
-          { name: 'Citibank', isRegulator: false },
+          { name: 'Regulator', isRegulator: true },
+          { name: 'Bank A', isRegulator: false },
+          { name: 'Bank B', isRegulator: false },
+          { name: 'Bank C', isRegulator: false },
+          { name: 'Bank D', isRegulator: false },
         ]).map((party, i) => (
           <div key={i} className={`participant-card ${party.isRegulator ? 'regulator' : ''}`}>
             <span className="participant-icon">{party.isRegulator ? '🏛️' : '🏦'}</span>
@@ -158,14 +158,14 @@ function DashboardView({ devnet, loading }: { devnet: DevnetStats; loading: bool
         ))}
       </div>
 
-      <h3>Recent Prediction Markets</h3>
+      <h3>Recent Risk Assessments</h3>
       <div className="contracts-list">
         {displayContracts.slice(0, 5).map((c: any, i: number) => (
           <div key={i} className="contract-card">
             <div className="contract-header">
               <span className="contract-id">{c.transactionId}</span>
               <span className={`contract-status ${c.isOpen ? 'open' : 'closed'}`}>
-                {c.isOpen ? '● VOTING' : '● RESOLVED'}
+                {c.isOpen ? '● ACTIVE' : '● RESOLVED'}
               </span>
             </div>
             <div className="contract-details">
@@ -183,31 +183,31 @@ function DashboardView({ devnet, loading }: { devnet: DevnetStats; loading: bool
 
 function PredictionMarketView({ devnet }: { devnet: DevnetStats }) {
   const sampleMarkets = [
-    { id: 'MKT-001', tx: 'TX-89234521', amount: '$25,000', dest: 'Binance (Crypto)', riskScore: 87.2, status: 'RESOLVED', action: 'BLOCKED', votes: [
-      { bank: 'JPMorgan Chase', confidence: 89, stake: 250 },
-      { bank: 'Bank of America', confidence: 85, stake: 200 },
-      { bank: 'Wells Fargo', confidence: 88, stake: 150 },
-      { bank: 'Citibank', confidence: 84, stake: 120 },
+    { id: 'MKT-001', tx: 'TX-89234521', amount: '$25,000', dest: 'Crypto Exchange', riskScore: 87.2, status: 'RESOLVED', action: 'BLOCKED', votes: [
+      { bank: 'Bank A', confidence: 89, weight: 1.8 },
+      { bank: 'Bank B', confidence: 85, weight: 1.5 },
+      { bank: 'Bank C', confidence: 88, weight: 1.2 },
+      { bank: 'Bank D', confidence: 84, weight: 2.0 },
     ]},
-    { id: 'MKT-002', tx: 'TX-67891234', amount: '$12,500', dest: 'Dubai Investment LLC', riskScore: 72.4, status: 'RESOLVED', action: 'REVIEW', votes: [
-      { bank: 'JPMorgan Chase', confidence: 71, stake: 250 },
-      { bank: 'Bank of America', confidence: 74, stake: 200 },
-      { bank: 'Wells Fargo', confidence: 69, stake: 150 },
-      { bank: 'Citibank', confidence: 76, stake: 120 },
+    { id: 'MKT-002', tx: 'TX-67891234', amount: '$12,500', dest: 'Offshore Investment LLC', riskScore: 72.4, status: 'RESOLVED', action: 'REVIEW', votes: [
+      { bank: 'Bank A', confidence: 71, weight: 1.8 },
+      { bank: 'Bank B', confidence: 74, weight: 1.5 },
+      { bank: 'Bank C', confidence: 69, weight: 1.2 },
+      { bank: 'Bank D', confidence: 76, weight: 2.0 },
     ]},
-    { id: 'MKT-003', tx: 'TX-45678901', amount: '$8,200', dest: 'Verified Merchant', riskScore: 34.1, status: 'VOTING', action: null, votes: [
-      { bank: 'JPMorgan Chase', confidence: 32, stake: 250 },
-      { bank: 'Bank of America', confidence: 38, stake: 200 },
+    { id: 'MKT-003', tx: 'TX-45678901', amount: '$8,200', dest: 'Verified Merchant', riskScore: 34.1, status: 'ACTIVE', action: null, votes: [
+      { bank: 'Bank A', confidence: 32, weight: 1.8 },
+      { bank: 'Bank B', confidence: 38, weight: 1.5 },
     ]},
   ];
 
   return (
     <div className="prediction-market">
-      <h2>Prediction Markets on Canton</h2>
+      <h2>Risk Signal Aggregation on Canton</h2>
       
       <div className="market-info-box">
         <h3>How It Works</h3>
-        <p>Banks submit confidential risk predictions on suspicious transactions. Predictions are weighted by stake and aggregated into a network-wide risk score. All votes are recorded on Canton Network for immutable audit trail.</p>
+        <p>Institutions submit confidential risk signals on suspicious transactions. Signals are weighted by reputation and aggregated into a network-wide risk score. All commitments are recorded on Canton Network for immutable audit trail.</p>
       </div>
 
       <div className="market-stats">
@@ -217,7 +217,7 @@ function PredictionMarketView({ devnet }: { devnet: DevnetStats }) {
         <div className="market-stat"><span className="stat-num">-30%</span><span className="stat-lbl">False Positives</span></div>
       </div>
 
-      <h3>Recent Markets</h3>
+      <h3>Recent Assessments</h3>
       <div className="markets-list">
         {sampleMarkets.map((m, i) => (
           <div key={i} className={`market-card ${m.status.toLowerCase()}`}>
@@ -238,7 +238,7 @@ function PredictionMarketView({ devnet }: { devnet: DevnetStats }) {
                     </div>
                     <span className="vote-pct">{v.confidence}%</span>
                   </div>
-                  <span className="vote-stake">${v.stake}</span>
+                  <span className="vote-weight">w: {v.weight}</span>
                 </div>
               ))}
             </div>
@@ -328,19 +328,19 @@ function RegulatorView({ devnet }: { devnet: DevnetStats }) {
   const [showVerification, setShowVerification] = useState(false);
 
   const sampleActivity = [
-    { time: '10:35:01', action: 'SAR_FILED', bank: 'JPMorgan Chase', tx: 'TX-89234521', detail: 'Auto-filed SAR, risk score 87.2%' },
-    { time: '10:35:00', action: 'MARKET_CLOSED', bank: 'JPMorgan Chase', tx: 'TX-89234521', detail: 'Decision: BLOCK' },
-    { time: '10:34:12', action: 'VOTE', bank: 'Citibank', tx: 'TX-89234521', detail: '84% confidence, $120 stake' },
-    { time: '10:33:45', action: 'VOTE', bank: 'Wells Fargo', tx: 'TX-89234521', detail: '88% confidence, $150 stake' },
-    { time: '10:32:18', action: 'VOTE', bank: 'Bank of America', tx: 'TX-89234521', detail: '85% confidence, $200 stake' },
-    { time: '10:31:02', action: 'VOTE', bank: 'JPMorgan Chase', tx: 'TX-89234521', detail: '89% confidence, $250 stake' },
-    { time: '10:30:00', action: 'MARKET_OPEN', bank: 'JPMorgan Chase', tx: 'TX-89234521', detail: 'Suspicious crypto transfer $25K' },
+    { time: '10:35:01', action: 'SAR_FILED', bank: 'Bank A', tx: 'TX-89234521', detail: 'Auto-filed SAR, risk score 87.2%' },
+    { time: '10:35:00', action: 'MARKET_CLOSED', bank: 'Bank A', tx: 'TX-89234521', detail: 'Decision: BLOCK' },
+    { time: '10:34:12', action: 'SIGNAL', bank: 'Bank D', tx: 'TX-89234521', detail: '84% confidence, w: 2.0' },
+    { time: '10:33:45', action: 'SIGNAL', bank: 'Bank C', tx: 'TX-89234521', detail: '88% confidence, w: 1.2' },
+    { time: '10:32:18', action: 'SIGNAL', bank: 'Bank B', tx: 'TX-89234521', detail: '85% confidence, w: 1.5' },
+    { time: '10:31:02', action: 'SIGNAL', bank: 'Bank A', tx: 'TX-89234521', detail: '89% confidence, w: 1.8' },
+    { time: '10:30:00', action: 'MARKET_OPEN', bank: 'Bank A', tx: 'TX-89234521', detail: 'Suspicious crypto transfer $25K' },
   ];
 
   return (
     <div className="regulator-view">
       <h2>🏛️ Regulator Dashboard</h2>
-      <p className="regulator-subtitle">FinCEN Observer Mode - Read-Only Access</p>
+      <p className="regulator-subtitle">Regulator Observer Mode - Read-Only Access</p>
 
       <div className="regulator-stats">
         <div className="stat-card">
@@ -349,7 +349,7 @@ function RegulatorView({ devnet }: { devnet: DevnetStats }) {
         </div>
         <div className="stat-card">
           <div className="stat-value">4</div>
-          <div className="stat-label">BANKS ACTIVE</div>
+          <div className="stat-label">INSTITUTIONS ACTIVE</div>
         </div>
         <div className="stat-card success">
           <div className="stat-value">✓</div>
@@ -378,7 +378,7 @@ function RegulatorView({ devnet }: { devnet: DevnetStats }) {
 
       <div className="compliance-note">
         <strong>🔒 Privacy Preserved:</strong> Regulator sees actions and outcomes, but NO customer PII is exposed. 
-        All data is anonymized and compliant with BSA Section 314(b) and GDPR.
+        All data is anonymized and protected by Canton Network's selective disclosure.
       </div>
 
       <div className="regulator-section verification-section">
