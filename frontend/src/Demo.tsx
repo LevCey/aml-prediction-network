@@ -283,7 +283,9 @@ export default function Demo() {
                         <button onClick={exportSarPdf} className="btn-export">Export PDF</button>
                       </div>
                     )}
-                    <button onClick={() => setStep(3)} className="btn-next-scene">Next: Cross-Bank Detection →</button>
+                    {scenarioId !== 'low' && (
+                      <button onClick={() => setStep(3)} className="btn-next-scene">Next: Cross-Bank Detection →</button>
+                    )}
                   </div>
                 )}
               </>
@@ -295,12 +297,16 @@ export default function Demo() {
         {step === 3 && marketResult && (
           <div className="cinema-demo step-pane">
             <div className="scene2-divider"><span className="scene2-time">⏱ 30 minutes later...</span></div>
-            <div className="cinema-alert scene2-alert">
-              <div className="alert-icon">🚨</div>
+            <div className={`cinema-alert scene2-alert`}>
+              <div className="alert-icon">{scenarioId === 'high' ? '🚨' : '⚠️'}</div>
               <div className="alert-content">
                 <h2>Same Entity Detected at Bank B</h2>
-                <div className="alert-title">Crypto Wire Transfer</div>
-                <div className="alert-meta"><span>$18,500</span><span>→</span><span>Crypto Exchange</span></div>
+                <div className="alert-title">{scenarioId === 'high' ? 'Crypto Wire Transfer' : 'International Wire'}</div>
+                <div className="alert-meta">
+                  <span>{scenarioId === 'high' ? '$18,500' : '$8,200'}</span>
+                  <span>→</span>
+                  <span>{scenarioId === 'high' ? 'Crypto Exchange' : 'Offshore Investment LLC'}</span>
+                </div>
                 <div className="alert-flags">
                   <span className="flag flag-network">🔗 Known pattern from network</span>
                   <span className="flag">⚠️ Matching risk signature</span>
@@ -312,16 +318,33 @@ export default function Demo() {
 
             {showScene2Result && (
               <div className="cinema-result scene2-result">
-                <div className="result-score">
-                  <div className="score-number">94<span>%</span></div>
-                  <div className="score-label">Network Risk Score (Pre-Transaction)</div>
-                </div>
-                <div className="result-decision danger"><span>🚨</span><span>AUTO-BLOCKED · ZERO DELAY</span></div>
-                <div className="scene2-impact">
-                  <div className="impact-item"><span className="impact-num">Instant</span><span className="impact-lbl">Detection</span></div>
-                  <div className="impact-item"><span className="impact-num">$18.5K</span><span className="impact-lbl">Loss Prevented</span></div>
-                  <div className="impact-item"><span className="impact-num">4</span><span className="impact-lbl">Institutions Coordinated</span></div>
-                </div>
+                {scenarioId === 'high' ? (
+                  <>
+                    <div className="result-score">
+                      <div className="score-number">94<span>%</span></div>
+                      <div className="score-label">Network Risk Score (Pre-Transaction)</div>
+                    </div>
+                    <div className="result-decision danger"><span>🚨</span><span>AUTO-BLOCKED · ZERO DELAY</span></div>
+                    <div className="scene2-impact">
+                      <div className="impact-item"><span className="impact-num">Instant</span><span className="impact-lbl">Detection</span></div>
+                      <div className="impact-item"><span className="impact-num">$18.5K</span><span className="impact-lbl">Loss Prevented</span></div>
+                      <div className="impact-item"><span className="impact-num">4</span><span className="impact-lbl">Institutions Coordinated</span></div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="result-score">
+                      <div className="score-number">72<span>%</span></div>
+                      <div className="score-label">Network Risk Score (Pre-Transaction)</div>
+                    </div>
+                    <div className="result-decision warning"><span>⚠️</span><span>FLAGGED · ENHANCED MONITORING</span></div>
+                    <div className="scene2-impact">
+                      <div className="impact-item"><span className="impact-num">Instant</span><span className="impact-lbl">Detection</span></div>
+                      <div className="impact-item"><span className="impact-num">$8.2K</span><span className="impact-lbl">Under Review</span></div>
+                      <div className="impact-item"><span className="impact-num">4</span><span className="impact-lbl">Institutions Coordinated</span></div>
+                    </div>
+                  </>
+                )}
               </div>
             )}
           </div>
