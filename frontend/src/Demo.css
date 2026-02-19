@@ -273,7 +273,7 @@
 }
 
 /* Cross-bank scene */
-.scene2-divider { text-align: center; position: relative; }
+.scene2-divider { text-align: center; position: relative; margin-bottom: 16px; }
 .scene2-divider::before { content: ''; position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--warning), transparent); }
 .scene2-time { background: var(--bg-primary); padding: 6px 20px; color: var(--warning); font-size: 16px; font-weight: 700; position: relative; letter-spacing: 1px; }
 .scene2-alert { border-color: var(--warning) !important; }
