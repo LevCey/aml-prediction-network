@@ -198,8 +198,8 @@
 
 /* Result compact */
 .cinema-result { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center; animation: fadeSlide 0.4s ease forwards; }
-.cinema-result.compact { padding: 14px; }
-.result-score { margin-bottom: 10px; }
+.cinema-result.compact { padding: 10px 14px; }
+.result-score { margin-bottom: 4px; }
 .score-number { font-size: 52px; font-weight: 700; line-height: 1; color: var(--text-heading); }
 .score-number span { font-size: 28px; color: var(--text-muted); }
 .score-label { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
