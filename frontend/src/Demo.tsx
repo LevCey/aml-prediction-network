@@ -174,11 +174,10 @@ export default function Demo() {
       {step > 0 && (
         <div className="stepper">
           {STEPS.map((label, i) => {
-            const s = i + 1
-            const cls = step >= s ? (step > s ? 'done' : 'active') : ''
+            const cls = i < step ? 'done' : i === step ? 'active' : ''
             return (
               <div key={i} className={`stepper-item ${cls}`}>
-                <div className="stepper-dot">{step > s ? '✓' : i + 1}</div>
+                <div className="stepper-dot">{i < step ? '✓' : i + 1}</div>
                 <span className="stepper-label">{label}</span>
               </div>
             )
