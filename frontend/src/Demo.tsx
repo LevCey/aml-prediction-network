@@ -260,9 +260,9 @@ export default function Demo() {
 
                 {!userDecision && (
                   <div className="decision-actions">
-                    <button className="btn-decision btn-block" onClick={() => handleDecision('block')}>🚨 Block Transaction</button>
-                    <button className="btn-decision btn-flag" onClick={() => handleDecision('flag')}>📋 Flag for SAR</button>
-                    <button className="btn-decision btn-allow" onClick={() => handleDecision('allow')}>✅ Allow</button>
+                    <button className={`btn-decision btn-block ${marketResult.riskScore >= 80 ? 'recommended' : ''}`} onClick={() => handleDecision('block')}>🚨 Block Transaction</button>
+                    <button className={`btn-decision btn-flag ${marketResult.riskScore >= 60 && marketResult.riskScore < 80 ? 'recommended' : ''}`} onClick={() => handleDecision('flag')}>📋 Flag for SAR</button>
+                    <button className={`btn-decision btn-allow ${marketResult.riskScore < 60 ? 'recommended' : ''}`} onClick={() => handleDecision('allow')}>✅ Allow</button>
                   </div>
                 )}
 
