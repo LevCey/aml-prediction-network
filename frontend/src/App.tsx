@@ -123,11 +123,11 @@ function DashboardView({ devnet, loading }: { devnet: DevnetStats; loading: bool
       <div className="stats-grid">
         <div className="stat-card highlight">
           <div className="stat-value">{totalCount.toLocaleString()}</div>
-          <div className="stat-label">TOTAL MARKETS</div>
+          <div className="stat-label">TOTAL ASSESSMENTS</div>
         </div>
         <div className="stat-card">
           <div className="stat-value">{devnet.parties.filter(p => !p.isRegulator).length || 4}</div>
-          <div className="stat-label">ACTIVE BANKS</div>
+          <div className="stat-label">INSTITUTIONS</div>
         </div>
         <div className="stat-card">
           <div className="stat-value">{devnet.parties.filter(p => p.isRegulator).length || 1}</div>
@@ -141,13 +141,13 @@ function DashboardView({ devnet, loading }: { devnet: DevnetStats; loading: bool
 
       <h3>Network Participants</h3>
       <div className="participants-grid">
-        {(devnet.parties.length > 0 ? devnet.parties : [
+        {[
           { name: 'Regulator', isRegulator: true },
           { name: 'Bank A', isRegulator: false },
           { name: 'Bank B', isRegulator: false },
           { name: 'Bank C', isRegulator: false },
           { name: 'Bank D', isRegulator: false },
-        ]).map((party, i) => (
+        ].map((party, i) => (
           <div key={i} className={`participant-card ${party.isRegulator ? 'regulator' : ''}`}>
             <span className="participant-icon">{party.isRegulator ? '🏛️' : '🏦'}</span>
             <div className="participant-info">
