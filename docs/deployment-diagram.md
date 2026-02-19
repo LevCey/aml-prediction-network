@@ -1,15 +1,18 @@
-# AML Prediction Network - Deployment Diagram
+# AML Prediction Network — Deployment Diagram
 
-## Current Architecture (Tenzro DevNet)
+**From Shared Ledgers to Shared Judgment**
+
+---
+
+## Current Deployment (Canton DevNet)
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
 │                        CANTON DEVNET (Tenzro)                        │
 │                                                                      │
 │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐   │
-│  │ Bank of     │ │ Wells       │ │ Citibank    │ │ JPMorgan    │   │
-│  │ America     │ │ Fargo       │ │             │ │ Chase       │   │
-│  │ (Party)     │ │ (Party)     │ │ (Party)     │ │ (Party)     │   │
+│  │  Bank A     │ │  Bank B     │ │  Bank C     │ │  Bank D     │   │
+│  │  (Party)    │ │  (Party)    │ │  (Party)    │ │  (Party)    │   │
 │  └──────┬──────┘ └──────┬──────┘ └──────┬──────┘ └──────┬──────┘   │
 │         │               │               │               │           │
 │         └───────────────┼───────────────┼───────────────┘           │
@@ -17,16 +20,15 @@
 │                  ┌──────▼───────────────▼──────┐                    │
 │                  │    Daml Smart Contracts      │                    │
 │                  │  ┌────────────────────────┐  │                    │
-│                  │  │ FraudPattern           │  │                    │
+│                  │  │ TransactionPattern     │  │                    │
 │                  │  │ PredictionMarket       │  │                    │
-│                  │  │ RiskScore              │  │                    │
-│                  │  │ SARReport              │  │                    │
 │                  │  │ BankReputation         │  │                    │
+│                  │  │ SARReport / AuditLog   │  │                    │
 │                  │  └────────────────────────┘  │                    │
 │                  └──────────────┬───────────────┘                    │
 │                                │                                    │
 │                  ┌─────────────▼─────────────┐                      │
-│                  │   FinCEN (Observer Node)   │                      │
+│                  │   Regulator (Observer)     │                      │
 │                  │   Read-only / Audit Trail  │                      │
 │                  └───────────────────────────┘                      │
 │                                                                      │
@@ -52,90 +54,64 @@
                     └──────────────────────────────┘
 ```
 
-## Data Flow
+---
+
+## Coordination Flow
 
 ```
 ┌─────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
-│ Bank A   │    │ Canton   │    │ Bank B   │    │ FinCEN   │
-│ (Local)  │    │ Ledger   │    │ (Local)  │    │(Observer)│
+│ Bank A   │    │ Canton   │    │ Bank B   │    │Regulator │
+│          │    │ Ledger   │    │          │    │(Observer)│
 └────┬─────┘    └────┬─────┘    └────┬─────┘    └────┬─────┘
      │               │               │               │
      │ 1. Detect     │               │               │
-     │    fraud      │               │               │
+     │    suspicious │               │               │
+     │    activity   │               │               │
      │               │               │               │
-     │ 2. Create     │               │               │
-     ├──────────────►│ FraudPattern  │               │
-     │  patternHash  │ (no PII)     │               │
+     │ 2. Submit     │               │               │
+     ├──────────────►│ Pattern       │               │
+     │  (anonymized) │ (no PII)     │               │
      │               │               │               │
      │               │ 3. Selective  │               │
      │               │    disclosure │               │
      │               ├──────────────►│               │
      │               ├──────────────────────────────►│
      │               │               │               │
-     │               │  4. Fraudster │               │
-     │               │     arrives   │               │
+     │               │  4. Same entity               │
+     │               │     appears   │               │
      │               │               │               │
-     │               │  5. Hash      │               │
+     │               │  5. Pattern   │               │
      │               │◄──────────────┤               │
-     │               │   match!      │               │
+     │               │   match       │               │
      │               │               │               │
-     │ 6. Vote       │ PredictionMkt │  6. Vote      │
-     ├──────────────►│◄──────────────┤               │
-     │  85% / $200   │               │  75% / $150   │
+     │ 6. Belief     │               │  6. Belief    │
+     ├──────────────►│               │◄──────────────┤
+     │  pᵢ = 0.85   │               │  pᵢ = 0.75   │
      │               │               │               │
-     │               │ 7. Risk Score │               │
-     │               │    = 78.3%    │               │
+     │               │ 7. Aggregated │               │
+     │               │    Risk Score │               │
+     │               │    B = 0.80   │               │
      │               │               │               │
-     │               │ 8. Auto-SAR   │               │
+     │               │ 8. SAR filed  │               │
      │               ├──────────────────────────────►│
-     │               │  (if ≥ 80%)   │               │
+     │               │  (threshold   │               │
+     │               │   exceeded)   │               │
      │               │               │               │
 ```
 
-## Production Target Architecture
+---
+
+## Privacy Boundary
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│                    Canton Network (Production)                │
-│                                                              │
-│  ┌──────────────────┐          ┌──────────────────┐         │
-│  │ Bank A Node       │          │ Bank B Node       │         │
-│  │ ┌──────────────┐ │          │ ┌──────────────┐ │         │
-│  │ │ Canton       │ │          │ │ Canton       │ │         │
-│  │ │ Participant  │ │          │ │ Participant  │ │         │
-│  │ ├──────────────┤ │          │ ├──────────────┤ │         │
-│  │ │ Local DB     │ │          │ │ Local DB     │ │         │
-│  │ │ (Customer    │ │          │ │ (Customer    │ │         │
-│  │ │  PII stays   │ │          │ │  PII stays   │ │         │
-│  │ │  here)       │ │          │ │  here)       │ │         │
-│  │ ├──────────────┤ │          │ ├──────────────┤ │         │
-│  │ │ AML Engine   │ │          │ │ AML Engine   │ │         │
-│  │ │ (Pattern     │ │          │ │ (Pattern     │ │         │
-│  │ │  matching)   │ │          │ │  matching)   │ │         │
-│  │ └──────────────┘ │          │ └──────────────┘ │         │
-│  └────────┬─────────┘          └────────┬─────────┘         │
-│           │                             │                    │
-│           └──────────┬──────────────────┘                    │
-│                      │                                       │
-│            ┌─────────▼─────────┐                             │
-│            │  Daml Contracts   │                             │
-│            │  (Shared Ledger)  │                             │
-│            └─────────┬─────────┘                             │
-│                      │                                       │
-│            ┌─────────▼─────────┐                             │
-│            │ Regulator Node    │                             │
-│            │ (FinCEN/Observer) │                             │
-│            └───────────────────┘                             │
-│                                                              │
-└──────────────────────────────────────────────────────────────┘
-
-Privacy Boundary:
 ═══════════════════════════════════════════════════
-  ON-CHAIN (shared)     │  OFF-CHAIN (local only)
-  - Pattern hashes      │  - Customer names
-  - Risk scores         │  - Account numbers
-  - Vote records        │  - Transaction details
-  - SAR filings         │  - Bank internal data
-  - Audit logs          │  - Raw AML alerts
+  ON CANTON (shared)        │  LOCAL ONLY (private)
+  ─────────────────────────-│──────────────────────
+  Anonymized patterns       │  Customer names
+  Belief commitments        │  Account numbers
+  Aggregated risk scores    │  Transaction details
+  SAR filings               │  Internal models
+  Audit trail               │  Raw AML alerts
+  Reputation metrics        │  Counterparty data
 ═══════════════════════════════════════════════════
 ```
