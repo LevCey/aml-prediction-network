@@ -1,147 +1,96 @@
-# AML Prediction Network - Roadmap
+# AML Prediction Network — Roadmap
 
-## 🎯 Current Status (January 25, 2026)
-- ✅ Hackathon winner (Canton Catalyst 2026)
-- ✅ Landing page: amlprediction.com
-- ✅ Demo app: amlprediction.network
-- ✅ Waitlist form active
-- ✅ Social media: Twitter, LinkedIn, YouTube
-- ✅ Compliance module (SAR auto-filing, Audit Log, Regulator View)
-- 🔄 Mentorship program ongoing (until Feb 13)
+**From Shared Ledgers to Shared Judgment**
 
 ---
 
-## 🏦 Compliance Module (MVP)
+## Current Status — February 2026
 
-### Core Principle
-> Compliance is not an add-on module — it's a natural outcome of the DAML model
-
-### DAML Template Structure
-```daml
-template PredictionMarket
-  with
-    creator : Party
-    participants : [Party]
-    regulator : Party
-  where
-    signatory creator
-    observer participants ++ [regulator]  -- Regulator sees but cannot act
-```
-
-### Compliance UI (4 Tabs)
-
-#### 1️⃣ Dashboard
-- Transaction list
-- Risk score display
-- SAR alert (automatic)
-
-#### 2️⃣ Prediction Markets
-- Active voting
-- Bank votes
-- Weighted risk score
-
-#### 3️⃣ Fraud Patterns
-- Pattern library
-- Shared patterns
-
-#### 4️⃣ Regulator View
-- SAR Reports list
-- Audit Log
-- Compliance Breakdown
-
-### Auditor Node Permissions
-| Permission | Available |
-|------------|-----------|
-| View active contracts | ✅ |
-| View history | ✅ |
-| Execute choices | ❌ |
-| Delete data | ❌ |
+- ✅ Canton Catalyst 2026 Winner
+- ✅ Mentorship program (ongoing)
+- ✅ Working prototype on Canton DevNet
+- ✅ Live demo: [amlprediction.network](https://amlprediction.network)
+- ✅ Landing page: [amlprediction.com](https://amlprediction.com)
 
 ---
 
-## 📊 Phase 2 Features
+## Phase 1: Prototype ✅
 
-### Pattern Similarity Scoring
-- [ ] Characteristics-based similarity calculation
-- [ ] 80%+ similarity = match
-- [ ] MVP: exact match, Phase 2: similarity scoring
+Validate that privacy-preserving belief aggregation can be implemented on Canton.
 
-### Automatic Participant Selection
-- [ ] FraudPattern observers become automatic participants
-- [ ] Network membership system
-- [ ] MVP: manual list, Phase 2: automatic
+**Completed:**
 
-### Automatic Market Closing
-- [ ] Market auto-closes when deadline reached
-- [ ] Canton Automation or backend trigger
-- [ ] MVP: manual, Phase 2: automatic
+- Multi-party Daml contracts for belief commitments
+- Weighted risk signal aggregation
+- Reputation scoring and weight adjustment
+- SAR auto-filing at configurable thresholds
+- Regulator observer mode (read-only audit trail)
+- Interactive demo environment
+- Canton DevNet deployment
 
-### Network Effects Dashboard
-- [ ] Real metrics: bank count, detection rate, false positive rate
-- [ ] Time-based growth chart
-- [ ] Before/After comparison
-- [ ] After DevNet deployment with real data
+**Smart Contracts:**
 
-### SAR Auto-Filing ✅
-- [x] Auto-create SAR when risk threshold (≥80%) exceeded
-- [x] SARReport template (DAML)
-- [x] AuditLog template (DAML)
-- [x] Regulator AcknowledgeSAR choice
-- [x] Frontend: SAR alert in transaction card
-- [x] Frontend: Regulator View with SAR list + Audit Log
+| Contract | Purpose |
+|----------|---------|
+| `PredictionMarket.daml` | Belief submission, weighted risk scoring, SAR triggers |
+| `BankReputation.daml` | Prediction accuracy tracking, voting weight adjustment |
+| `TransactionPattern.daml` | Fraud pattern templates, suspicious transaction matching |
+| `Setup.daml` | DevNet party setup (banks, regulator, operator) |
 
-### Multi-Bank Demo
-- [ ] 2-3 bank simulation
-- [ ] Bank A shares pattern → Bank B sees instantly
-- [ ] Privacy + collaboration demonstration
+**Outcome:** The coordination mechanism works. Beliefs can be submitted, aggregated, and resolved on Canton with privacy boundaries enforced at the contract level.
 
 ---
 
-## 🧠 Phase 3: Federated Learning Integration
+## Phase 2: Mechanism Hardening (Current)
 
-### Why FL?
-> Prediction markets capture human intelligence. FL captures machine intelligence. Together = hybrid intelligence no competitor offers.
+Stress-test the mechanism under adversarial conditions and expand simulation scope.
 
-### Architecture
-- Canton = coordination/governance/audit layer (Daml contracts manage FL rounds)
-- ML training = off-chain on each bank's infrastructure (Python/Flower framework)
-- Model updates = shared via Canton's encrypted messaging (sync domains are blind to content)
-- Aggregation = off-chain service, verified/coordinated by Daml contracts
+**In Progress:**
 
-### Implementation Steps
-- [ ] `FederatedLearningRound` Daml template (round management, participant registration)
-- [ ] `ModelUpdateSubmission` Daml template (hash verification, encrypted weight sharing)
-- [ ] Flower framework integration (off-chain FL training bridge)
-- [ ] FL model output → Prediction Market input (enhanced bank vote accuracy)
-- [ ] Closed-loop: market outcomes feed back into FL model training
-- [ ] Differential privacy on model updates before aggregation
+- [ ] Adversarial testing — can participants game the aggregation?
+- [ ] Sybil resistance — does reputation weighting prevent manipulation?
+- [ ] Expanded participant simulation — 5+ concurrent institutions
+- [ ] Aggregation quality analysis — does collective output outperform individual signals?
+- [ ] Regulator feedback integration — observer node usability
+- [ ] Resolution workflow refinement — how hypotheses get confirmed or rejected
 
-### Real-World Validation
-| Deployment | Result |
-|------------|--------|
-| Singapore MAS/COSMIC | 60-70% false positive reduction, 3x faster investigations |
-| Hong Kong HKMA (Airstar/livi) | Cross-bank AML pilot with FL |
-| Banking Circle (EU) | Improved detection in cross-border payments |
-| Australia (Regional/Beyond Bank) | Community banks using collective FL intelligence |
+**Key Questions This Phase Answers:**
 
-### Key Differentiator
-- Consilient = FL only
-- Polymarket = Prediction markets only
-- **AML Prediction Network = FL + Prediction Markets on Canton** (unique in market)
+- Is the primitive sound under adversarial assumptions?
+- Does aggregation measurably improve decision quality?
+- Does privacy hold when participants attempt inference attacks?
+
+**Target Outcome:** Mechanism validity demonstrated with evidence, not just feasibility.
 
 ---
 
-## 🎤 Key Demo Messages
+## Phase 3: Generalization
 
-1. **"The auditor can see everything, but cannot take any action."**
-2. **"I cannot disable this rule from the backend."**
-3. **"Even if we shut down our product, the ledger keeps running."**
+Extend the coordination primitive beyond AML to other regulated domains.
+
+**Planned:**
+
+- [ ] Federated model-assisted belief generation
+- [ ] Adaptive hypothesis markets
+- [ ] Multi-domain signal types (sanctions, credit risk, market abuse)
+- [ ] Design partner exploration
+- [ ] Regulator engagement for pilot feedback
+
+**Potential Domains:**
+
+| Domain | Coordination Need |
+|--------|-------------------|
+| Market abuse signaling | Cross-venue pattern detection |
+| Credit risk coordination | Shared exposure awareness |
+| Sanctions intelligence | Distributed screening signals |
+| Liquidity stress detection | Interbank early warning |
+
+**Target Outcome:** The primitive generalizes — AML was the first application, not the only one.
 
 ---
 
-## 📝 Notes
+## Long-Term Vision
 
-- Banks pay for "no risk" feeling, not "wow UI"
-- Compliance should be natural, not bolted-on
-- Small but deep MVP > Wide but shallow MVP
-- RegTech market: $130B+ (2026), 31.87% annual growth
+A financial system where institutions coordinate knowledge without surrendering sovereignty.
+
+The network converts fragmented observations into shared situational awareness — without creating shared exposure.
