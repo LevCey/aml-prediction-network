@@ -1,467 +1,117 @@
-# AML Prediction Network - Technical Architecture
+# AML Prediction Network — Architecture
 
-## System Overview
+**From Shared Ledgers to Shared Judgment**
 
-The AML Prediction Network is a privacy-preserving fraud detection system built on Canton Network using Daml smart contracts. It enables financial institutions to collaborate on fraud detection while maintaining customer privacy and regulatory compliance.
+---
+
+## Overview
+
+AML Prediction Network is a privacy-preserving coordination layer built on Canton Network using Daml smart contracts. It enables financial institutions to aggregate probabilistic risk beliefs without exposing underlying data.
+
+The system does not centralize detection. It coordinates judgment.
 
 ---
 
 ## Core Components
 
-### 1. Smart Contracts (Daml)
+### Smart Contracts (Daml)
 
-#### **TransactionPattern.daml**
+#### TransactionPattern.daml
 
-**Purpose**: Share fraud patterns anonymously without revealing customer PII.
+Stores anonymized behavioral patterns and suspicious transaction templates.
 
-**Templates**:
+- **FraudPattern** — Behavioral signature (e.g., "structuring", "new_account", "crypto_exchange"). Uses pattern hashing. No customer PII on-chain.
+- **SuspiciousTransaction** — Anonymized transaction submission linked to a pattern. Triggers belief aggregation workflow.
 
-- **FraudPattern**
-  - Stores behavioral patterns (e.g., "structuring", "new_account", "crypto_exchange")
-  - Uses pattern hashing (SHA256) to avoid storing raw data
-  - Signatories: Submitting bank
-  - Observers: Other banks + regulator
+#### PredictionMarket.daml
 
-  ```daml
-  template FraudPattern
-    with
-      patternId: Text
-      submitter: Party
-      patternHash: Text
-      characteristics: [Text]
-      timestamp: Time
-      observers: [Party]
-      verified: Bool
-  ```
+Manages the belief submission and aggregation workflow.
 
-- **SuspiciousTransaction**
-  - Anonymized transaction submission
-  - Links to FraudPattern via hash
-  - Triggers prediction market creation
+- **PredictionMarket** — Multi-party contract where institutions submit confidence estimates. Aggregates into weighted risk score. Time-bound with configurable deadline.
+- **RiskScore** — Final aggregated output. Includes contributor list, recommended action, and immutable audit trail.
+- **SARReport** — Auto-generated when aggregated risk exceeds threshold (≥80%). Immutable filing record with status tracking.
+- **AuditLog** — Tracks all network actions. Regulator has full read visibility.
 
-  ```daml
-  template SuspiciousTransaction
-    with
-      transactionId: Text
-      reportingBank: Party
-      patternHash: Text
-      amount: Decimal
-      riskFactors: [Text]
-  ```
+#### BankReputation.daml
 
-**Key Features**:
-- NO customer names, account numbers, or identifying information
-- Pattern verification by multiple banks
-- Automatic archival after time period
+Tracks prediction accuracy and adjusts participant influence.
+
+- **BankReputation** — Correct vs. total predictions, accuracy percentage, reputation score (0–100). Updated by verifier, not by the participant itself.
+
+**Key design constraint:** Banks cannot update their own reputation. Only resolution outcomes adjust weights. This prevents gaming.
 
 ---
 
-#### **PredictionMarket.daml**
-
-**Purpose**: Aggregate fraud predictions from multiple banks using weighted voting.
-
-**Templates**:
-
-- **PredictionMarket**
-  - Multi-bank voting on fraud likelihood
-  - Weighted risk score calculation
-  - Time-bound (deadline-based)
-
-  ```daml
-  template PredictionMarket
-    with
-      marketId: Text
-      transactionId: Text
-      participants: [Party]
-      deadline: Time
-      votes: Map Party BankVote
-      regulator: Party
-      isOpen: Bool
-  ```
-
-- **BankVote** (Data type)
-  ```daml
-  data BankVote = BankVote
-    with
-      confidence: Decimal  -- 0.0 to 1.0
-      stake: Decimal       -- Amount staked
-      timestamp: Time
-  ```
-
-- **RiskScore**
-  - Final calculated risk score
-  - Recommended action (BLOCK / REVIEW / APPROVE)
-  - Immutable audit trail
-
-  ```daml
-  template RiskScore
-    with
-      transactionId: Text
-      score: Decimal
-      contributors: [Party]
-      regulator: Party
-      actionTaken: Optional Text
-  ```
-
-- **OutcomeVerification**
-  - Records actual fraud outcome
-  - Used to update bank reputations
-  - Links predicted score to reality
-
-- **SARReport** (Compliance)
-  - Auto-generated when risk score ≥ 80%
-  - Immutable filing record for FinCEN
-  - Status tracking: SUBMITTED → ACKNOWLEDGED
-
-  ```daml
-  template SARReport
-    with
-      sarId: Text
-      transactionId: Text
-      riskScore: Decimal
-      filingBank: Party
-      regulator: Party
-      filedAt: Time
-      status: Text
-  ```
-
-- **AuditLog** (Compliance)
-  - Tracks all network actions
-  - Regulator has full visibility
-  - Immutable audit trail
-
-  ```daml
-  template AuditLog
-    with
-      logId: Text
-      transactionId: Text
-      action: Text  -- SAR_FILED, VOTE_SUBMITTED, etc.
-      actor: Party
-      timestamp: Time
-      details: Text
-      regulator: Party
-  ```
-
-**Key Features**:
-- Weighted average calculation: `(Σ confidence × stake) / Σ stake`
-- Deadline enforcement
-- Regulator observation (read-only)
-- Non-consuming outcome verification
-
-**Example**:
-```
-Bank A: 85% fraud, $200 stake
-Bank B: 75% fraud, $150 stake
-Bank C: 70% fraud, $100 stake
-
-Risk Score = (0.85×200 + 0.75×150 + 0.70×100) / 450
-           = 352.5 / 450
-           = 0.783 (78.3%)
-
-Action: REVIEW (>60% threshold)
-```
-
----
-
-#### **BankReputation.daml**
-
-**Purpose**: Track bank prediction accuracy and adjust voting power.
-
-**Templates**:
-
-- **BankReputation**
-  - Tracks correct vs. total predictions
-  - Calculates accuracy percentage
-  - Reputation score (0-100)
-  - Updated by verifier (not bank itself) for security
-
-  ```daml
-  template BankReputation
-    with
-      bank: Party
-      totalPredictions: Int
-      correctPredictions: Int
-      accuracy: Decimal
-      reputationScore: Decimal  -- 0-100
-
-    choice UpdateReputation : ContractId BankReputation
-      with
-        wasCorrect: Bool
-        verifier: Party
-      controller verifier  -- Security: bank cannot update own reputation
-  ```
-
-- **VotingPower**
-  - Adjusts stake effectiveness based on reputation
-  - Multiplier: 0.5x (poor) to 2.0x (elite)
-
-  ```daml
-  template VotingPower
-    with
-      bank: Party
-      baseStake: Decimal
-      reputationMultiplier: Decimal
-      effectiveVotingPower: Decimal
-  ```
-
-  **Reputation Tiers**:
-  - Elite (90-100): 2.0x multiplier
-  - Excellent (75-89): 1.5x multiplier
-  - Good (50-74): 1.0x multiplier
-  - Fair (25-49): 0.75x multiplier
-  - Poor (0-24): 0.5x multiplier
-
-- **NetworkStatistics**
-  - Regulator-only view
-  - Tracks overall fraud detection rate
-  - False positive monitoring
-
-**Key Features**:
-- Automatic reputation updates
-- Long-term incentive alignment
-- Prevents gaming (bad actors lose influence)
-- Rewards consistent accuracy
-
----
-
-## System Workflow
-
-### End-to-End Flow: Fraudster Detection
+## Coordination Workflow
 
 ```
-1. PATTERN DETECTION
-   Bank A detects fraudster John
-   └─> Create FraudPattern (anonymized)
-       - Hash: 0x7a8f...
-       - Characteristics: ["structuring", "new_account"]
+1. SIGNAL CREATION
+   Bank A detects suspicious activity
+   └─> Submits anonymized pattern to network
+       (behavioral signature only — no customer data)
 
-2. PATTERN SHARING
-   Pattern broadcast to network
-   └─> Bank B, C, Regulator observe
-       - NO customer data shared
-       - Only behavioral signature
+2. BELIEF SUBMISSION
+   Network participants evaluate the hypothesis
+   └─> Each submits a confidence estimate (pᵢ)
+       weighted by reputation (wᵢ)
 
-3. FRAUDSTER MOVES
-   John tries Bank B (30 mins later)
-   └─> Bank B's system flags transaction
-       - Pattern hash match: 95% similarity
+3. AGGREGATION
+   Canton aggregates beliefs into shared risk score
+   └─> B = Σ(wᵢ · pᵢ) / Σ(wᵢ)
+       All participants receive the same output
 
-4. PREDICTION MARKET CREATED
-   Bank B submits SuspiciousTransaction
-   └─> CreatePredictionMarket choice executed
-       - Participants: Bank A, B, C
-       - Deadline: 24 hours
+4. ACTION
+   Risk score triggers configurable response
+   └─> ≥ 80%: SAR auto-filed, regulator notified
+       60–80%: Enhanced due diligence
+       < 60%: No network action
 
-5. BANKS VOTE
-   Bank A: 85% fraud ($200) - "I just dealt with this!"
-   Bank B: 75% fraud ($150) - "Looks suspicious"
-   Bank C: 70% fraud ($100) - "Borderline case"
+5. RESOLUTION
+   Real-world outcome confirms or rejects hypothesis
+   └─> Reputation weights updated accordingly
+       Accurate contributors gain influence
+       Inaccurate contributors lose influence
 
-6. RISK SCORE CALCULATED
-   Weighted average: 78.3%
-   └─> Action: REVIEW (60-80% range)
-       - Enhanced due diligence triggered
-       - Compliance team investigates
-
-7. INVESTIGATION CONFIRMS FRAUD
-   Bank B blocks transaction
-   └─> VerifyOutcome: actualFraud = True
-       - Bank A reputation +1 (correct)
-       - Bank B reputation +1 (correct)
-       - Bank C reputation +1 (correct)
-
-8. NETWORK LEARNS
-   Pattern confidence increased to 95%
-   └─> Next fraudster attempt: instant detection
+6. NETWORK LEARNS
+   Updated weights improve future aggregation quality
+   └─> System becomes self-correcting over time
 ```
 
 ---
 
 ## Privacy Architecture
 
-### What IS Shared
+### What Cannot Be Learned
 
-| Data Type | Example | Visible To |
-|-----------|---------|------------|
-| Pattern hash | 0x7a8f9b2c... | All banks + regulator |
-| Characteristics | ["structuring", "new_account"] | All banks + regulator |
-| Risk scores | 78.3% fraud probability | Contributing banks + regulator |
-| Aggregated statistics | 1,247 transactions analyzed | Regulator only |
+| Data | Protection |
+|------|-----------|
+| Customer names, accounts | Never on-chain |
+| Transaction details | Anonymized into behavioral categories |
+| Internal models | Remain local to each institution |
+| Individual bank reasoning | Canton selective disclosure |
+| Counterparty relationships | Never leaves the institution |
 
-### What is NOT Shared
+### What Can Be Learned
 
-| Data Type | Example | Protection Method |
-|-----------|---------|-------------------|
-| Customer names | "John Doe" | Never on-chain |
-| Account numbers | "ACC-12345" | Never on-chain |
-| Transaction details | $9,500 to Crypto Exchange XYZ | Anonymized amounts + categories |
-| Bank-specific data | "Chase Bank flagged this" | Canton selective disclosure |
+| Data | Visible To |
+|------|-----------|
+| Aggregated risk score | Contributing participants + regulator |
+| Confidence evolution over time | Contributing participants + regulator |
+| Participant reliability metrics | Regulator only |
+| Network-level statistics | Regulator only |
 
-### Canton Network Privacy Features
+### Canton Privacy Enforcement
 
-1. **Selective Disclosure**
-   - Each party only sees contracts they're authorized for
-   - Bank A's submission ≠ visible to Bank C (unless observer)
+- **Selective disclosure** — Each party sees only contracts they are authorized for
+- **Observer pattern** — Regulator observes all; banks see only relevant signals
+- **Pattern hashing** — SHA256 of behavioral characteristics; not reversible
+- **No global state exposure** — Unlike public blockchains, Canton does not broadcast state
 
-2. **Observer Pattern**
-   - Regulators see everything (compliance)
-   - Banks see only relevant patterns
-
-3. **Pattern Hashing**
-   - SHA256 hash of characteristics
-   - Collision-resistant
-   - No reverse engineering
-
-4. **Differential Privacy**
-   - Aggregated statistics only
-   - Individual transactions masked
-
----
-
-## Regulatory Compliance
-
-### BSA (Bank Secrecy Act)
-
-**Requirement**: Cannot share customer data
-**Solution**: Share behavioral patterns, not PII
-
-### Section 314(b)
-
-**Requirement**: Information sharing with FinCEN approval
-**Solution**: Pre-approved framework with regulator observer nodes
-
-### GDPR
-
-**Requirement**: Right to be forgotten
-**Solution**: Personal data stays local at banks, only hashes on-chain
-
-### KYC/AML
-
-**Requirement**: Know Your Customer checks
-**Solution**: Pattern-based detection without customer identification
-
-### SAR (Suspicious Activity Report)
-
-**Requirement**: File SARs with FinCEN
-**Solution**: Auto-filing at risk score thresholds
-
----
-
-## Data Model
-
-### Entity Relationship
-
-```
-FraudPattern ──┐
-               │
-               ├──> SuspiciousTransaction
-               │         │
-               │         └──> PredictionMarket
-               │                    │
-               │                    ├──> BankVote (many)
-               │                    │
-               │                    └──> RiskScore
-               │                              │
-               │                              ├──> OutcomeVerification
-               │                              │
-               │                              ├──> SARReport (if score ≥ 80%)
-               │                              │
-               │                              └──> AuditLog
-               │
-               └──> BankReputation
-                         │
-                         └──> VotingPower
-```
-
-### State Transitions
-
-```
-PredictionMarket States:
-  OPEN → voting allowed
-  CLOSED → calculate risk score
-  VERIFIED → outcome confirmed
-
-RiskScore Actions:
-  score >= 0.8 → BLOCK
-  score >= 0.6 → REVIEW
-  score < 0.6 → APPROVE
-```
-
----
-
-## Performance Characteristics
-
-### Throughput
-
-- **Pattern Submission**: < 1 second
-- **Vote Submission**: < 500ms
-- **Risk Calculation**: < 100ms (for 10 banks)
-- **Market Creation**: < 2 seconds
-
-### Scalability
-
-- **Banks**: 100+ participants supported
-- **Concurrent Markets**: 1000+ active markets
-- **Historical Patterns**: Unlimited (with archival)
-
-### Latency
-
-- **Real-time Detection**: Pattern match in < 1 second
-- **Market Resolution**: 24 hours (configurable)
-- **Reputation Update**: Immediate after verification
-
----
-
-## Security Considerations
-
-### Threat Model
-
-1. **Malicious Bank (Sybil Attack)**
-   - Mitigation: Reputation system
-   - Low reputation = low voting power
-
-2. **Collusion**
-   - Mitigation: Long-term reputation tracking
-   - Outcome verification reveals collusion
-
-3. **Pattern Inference Attack**
-   - Mitigation: Pattern hashing + differential privacy
-   - Cannot reverse-engineer customer data
-
-4. **Reputation Manipulation**
-   - Mitigation: Verifier-controlled updates
-   - Banks cannot update their own reputation scores
-
-5. **DoS (Spam Patterns)**
-   - Mitigation: Staking requirements
-   - Bad patterns penalize reputation
-
-### Audit Trail
-
-Every action is immutable:
-- Pattern submission timestamp
-- Vote timestamps
-- Risk score calculations
-- Outcome verifications
-
-Regulators have full read access for investigations.
+Participation never increases regulatory exposure.
 
 ---
 
 ## Deployment Architecture
-
-### Development
-
-```
-┌─────────────────────────────────┐
-│   Daml Sandbox (local)          │
-│   - In-memory ledger            │
-│   - Fast testing                │
-│   - No persistence              │
-└─────────────────────────────────┘
-```
-
-### Production (Canton Network)
 
 ```
 ┌─────────────┐   ┌─────────────┐   ┌─────────────┐
@@ -469,158 +119,79 @@ Regulators have full read access for investigations.
 │  Node       │   │  Node       │   │  Node       │
 └──────┬──────┘   └──────┬──────┘   └──────┬──────┘
        │                 │                 │
+       │    belief       │    belief       │    belief
+       │    commitments  │    commitments  │    commitments
+       │                 │                 │
        └─────────────────┼─────────────────┘
                          │
                   ┌──────▼──────┐
-                  │  Canton     │
-                  │  Network    │
-                  │  (Sync)     │
+                  │   Canton    │
+                  │   Network   │
+                  │   (Sync)    │
                   └──────┬──────┘
                          │
                   ┌──────▼──────┐
                   │  Regulator  │
                   │  Observer   │
-                  │  Node       │
+                  │  (read-only)│
                   └─────────────┘
 ```
 
-### Node Components
+### Current Deployment
 
-Each bank runs:
-1. **Canton Participant Node**
-   - Stores contracts
-   - Executes choices
-   - Manages privacy
-
-2. **Local Database**
-   - Customer data (never leaves)
-   - Pattern metadata
-   - Cache
-
-3. **API Layer**
-   - REST API for frontend
-   - Daml Ledger API
-   - Authentication
+- **Smart Contracts:** Canton DevNet
+- **Frontend:** Vercel ([amlprediction.network](https://amlprediction.network))
+- **Demo:** Interactive simulation environment
 
 ---
 
-## Integration Points
-
-### Frontend (React)
-
-```typescript
-import { Ledger } from '@daml/ledger';
-import { PredictionMarket } from './daml-types';
-
-// Submit vote
-await ledger.exercise(
-  PredictionMarket.SubmitVote,
-  contractId,
-  {
-    voter: 'Bank_A',
-    confidence: '0.85',
-    stake: '200'
-  }
-);
-```
-
-### Bank Systems
+## Entity Relationships
 
 ```
-Existing AML System → API Gateway → Canton Node → Network
-
-Detection alert → Submit pattern → Broadcast to network
-```
-
-### Regulator Dashboard
-
-```
-Canton Observer Node → Read-only queries → Dashboard
-
-Real-time statistics:
-- Active markets
-- Fraud detection rate
-- False positive rate
-- Network health
+FraudPattern
+    │
+    └──> SuspiciousTransaction
+              │
+              └──> PredictionMarket
+                        │
+                        ├──> RiskScore
+                        │       │
+                        │       ├──> SARReport (if score ≥ 80%)
+                        │       │
+                        │       └──> AuditLog
+                        │
+                        └──> BankReputation (updated on resolution)
 ```
 
 ---
 
-## Testing Strategy
+## Adversarial Considerations
 
-### Unit Tests (Daml Script)
-
-Each contract has test scenarios:
-- `test_fraud_pattern`: Pattern submission + verification
-- `test_prediction_market`: Full voting workflow
-- `test_bank_reputation`: Reputation updates
-
-### Integration Tests
-
-Multi-contract workflows:
-- Pattern → Transaction → Market → Score → Verification
-
-### End-to-End Tests
-
-Full system simulation:
-- 3 banks + regulator
-- Multiple fraud patterns
-- Concurrent markets
-- Reputation evolution
+| Threat | Mitigation |
+|--------|-----------|
+| Participant submits false signals | Reputation weighting — inaccurate contributors lose influence over time |
+| Sybil attack (multiple fake identities) | Canton institutional permissioning — only verified entities participate |
+| Collusion between participants | Resolution-based verification reveals systematic inaccuracy |
+| Inference attack on other participants | Canton selective disclosure — individual beliefs are not visible to other participants |
+| Spam signals | Reputation cost — low-quality submissions degrade contributor weight |
 
 ---
 
-## Future Enhancements
+## Security Properties
 
-### Phase 2 (Post-Hackathon)
-
-1. **Zero-Knowledge Proofs**
-   - Prove pattern match without revealing pattern
-   - zk-SNARKs for customer data
-
-2. **Machine Learning Integration**
-   - On-chain ML model updates
-   - Federated learning
-
-3. **Token Economics**
-   - AML-NET token for staking
-   - Governance via token voting
-
-4. **Cross-Border Support**
-   - Multi-jurisdiction compliance
-   - Currency conversion
-
-5. **Advanced Analytics**
-   - Pattern clustering
-   - Fraud network detection
-   - Predictive modeling
+- **Immutable audit trail** — Every action (signal submission, aggregation, resolution) is recorded
+- **Verifier-controlled reputation** — Participants cannot update their own scores
+- **Regulator read access** — Full visibility without execution authority
+- **No central operator** — Canton enforces workflow logic; no single party controls outcomes
 
 ---
 
-## Glossary
+## Tech Stack
 
-- **Pattern Hash**: SHA256 hash of fraud characteristics
-- **Stake**: Amount committed to a prediction
-- **Confidence**: Fraud probability (0.0-1.0)
-- **Risk Score**: Weighted average of all votes
-- **Reputation**: Bank's historical accuracy (0-100)
-- **Multiplier**: Voting power adjustment (0.5x-2.0x)
-- **Observer**: Party with read-only access
-- **Signatory**: Party who must approve contract creation
-- **Choice**: Action that can be executed on a contract
-- **DAR**: Daml Archive (compiled contracts)
-
----
-
-## References
-
-- [Canton Network Documentation](https://docs.canton.network/)
-- [Daml Smart Contracts](https://docs.daml.com/)
-- [FinCEN Section 314(b)](https://www.fincen.gov/resources/statutes-and-regulations/314b-fact-sheet)
-- [Bank Secrecy Act](https://www.fincen.gov/resources/statutes-regulations/guidance)
-
----
-
-**Last Updated**: January 25, 2026
-**Version**: 1.1
-**Authors**: LeventLabs
+| Layer | Technology |
+|-------|-----------|
+| Smart Contracts | Daml 2.x (Canton Network SDK) |
+| Backend | Node.js, Python (Canton integration) |
+| Frontend | React + TypeScript, Recharts |
+| Privacy | Canton selective disclosure, differential privacy |
+| Deployment | Vercel (frontend), Canton DevNet (contracts) |
