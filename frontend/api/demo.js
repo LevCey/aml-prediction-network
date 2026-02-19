@@ -36,7 +36,7 @@ export default async function handler(req, res) {
   marketCount++;
 
   const { scenario = 'high' } = req.body || {};
-  const scenarios = { high: { base: 0.85, variance: 0.08 }, medium: { base: 0.55, variance: 0.15 }, low: { base: 0.28, variance: 0.12 } };
+  const scenarios = { high: { base: 0.85, variance: 0.08 }, medium: { base: 0.70, variance: 0.08 }, low: { base: 0.28, variance: 0.12 } };
   const { base, variance } = scenarios[scenario] || scenarios.high;
 
   const txId = `TX-${Math.floor(Math.random() * 100000000)}`;
