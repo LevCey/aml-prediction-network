@@ -1,44 +1,62 @@
-const TENZRO_API = 'https://api.platform.tenzro.com';
-const API_KEY = process.env.TENZRO_API_KEY;
-const TENANT_ID = process.env.TENZRO_TENANT_ID;
+const CANTON_API = process.env.CANTON_API_URL || 'http://46.224.56.32:7575';
+
+async function getOffset() {
+  const r = await fetch(`${CANTON_API}/v2/state/ledger-end`, { signal: AbortSignal.timeout(5000) });
+  const d = await r.json();
+  return d.offset;
+}
+
+async function getActiveContracts(offset) {
+  const r = await fetch(`${CANTON_API}/v2/state/active-contracts`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      filter: {
+        filtersByParty: {},
+        filtersForAnyParty: {
+          cumulative: [{ identifierFilter: { WildcardFilter: { value: { includeCreatedEventBlob: false } } } }]
+        }
+      },
+      verbose: true,
+      activeAtOffset: offset
+    }),
+    signal: AbortSignal.timeout(10000)
+  });
+  return r.json();
+}
 
 export default async function handler(req, res) {
   try {
-    // Get active contracts from ledger
-    const r = await fetch(`${TENZRO_API}/api/ledger/contracts?templateId=PredictionMarket:PredictionMarket`, {
-      headers: { 'X-API-Key': API_KEY, 'X-Tenant-Id': TENANT_ID }
-    });
-    const data = await r.json();
-    
-    // Get parties for name mapping
-    const partiesRes = await fetch(`${TENZRO_API}/api/ledger/parties`, {
-      headers: { 'X-API-Key': API_KEY, 'X-Tenant-Id': TENANT_ID }
-    });
-    const partiesData = await partiesRes.json();
-    const partyMap = {};
-    (partiesData.parties || []).forEach(p => { partyMap[p.partyId] = p.displayName.replace(/_/g, ' '); });
+    const offset = await getOffset();
+    const data = await getActiveContracts(offset);
+    const entries = Array.isArray(data) ? data : [];
 
-    const realContracts = data.contracts || [];
-    const contracts = realContracts.slice(0, 10).map(c => ({
-      contractId: c.contractId,
-      transactionId: c.payload?.transactionId || c.contractId.slice(0, 16),
-      marketId: c.payload?.marketId,
-      creator: partyMap[c.payload?.creator] || 'Unknown',
-      isOpen: c.payload?.isOpen,
-      votes: Object.keys(c.payload?.votes || {}).length,
-      createdAt: c.createdAt
-    }));
+    const contracts = entries
+      .map(item => {
+        const key = Object.keys(item.contractEntry || {})[0];
+        if (!key) return null;
+        const ce = item.contractEntry[key].createdEvent || {};
+        return { templateId: ce.templateId || '', contractId: ce.contractId || '', args: ce.createArgument || {} };
+      })
+      .filter(c => c && c.templateId.includes(':BankReputation:') || c.templateId.includes(':PredictionMarket:'))
+      .map(c => {
+        const mod = c.templateId.split(':')[1];
+        return {
+          contractId: c.contractId.slice(0, 16),
+          template: mod,
+          ...(mod === 'BankReputation' ? {
+            bank: (c.args.bank || '').split('::')[0].replace(/_/g, ' '),
+            reputationScore: parseFloat(c.args.reputationScore) || 0,
+            accuracy: parseFloat(c.args.accuracy) || 0
+          } : {
+            transactionId: c.args.transactionId,
+            isOpen: c.args.isOpen
+          })
+        };
+      });
 
-    // Use real count if available, otherwise use base count
-    const totalContracts = realContracts.length > 0 ? realContracts.length : 47;
-
-    res.json({ 
-      success: true, 
-      mode: 'canton-devnet',
-      totalContracts,
-      contracts 
-    });
+    res.json({ success: true, mode: 'canton-devnet', totalContracts: entries.length, contracts });
   } catch (err) {
-    res.json({ success: false, error: err.message, totalContracts: 47 });
+    res.json({ success: false, error: err.message, totalContracts: 0 });
   }
 }

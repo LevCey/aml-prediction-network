@@ -6,43 +6,40 @@ import DA.Map qualified as Map
 
 import BankReputation
 
--- Setup US parties for demo
+-- Setup parties for coordination demo
 setup_demo : Script ()
 setup_demo = script do
-  -- US Banks
-  jpmorgan <- allocatePartyWithHint "JPMorgan_Chase" (PartyIdHint "JPMorgan_Chase")
-  bankOfAmerica <- allocatePartyWithHint "Bank_of_America" (PartyIdHint "Bank_of_America")
-  wells <- allocatePartyWithHint "Wells_Fargo" (PartyIdHint "Wells_Fargo")
-  citi <- allocatePartyWithHint "Citibank" (PartyIdHint "Citibank")
-  regulator <- allocatePartyWithHint "FinCEN" (PartyIdHint "FinCEN")
+  bankA <- allocatePartyWithHint "Bank_A" (PartyIdHint "Bank_A")
+  bankB <- allocatePartyWithHint "Bank_B" (PartyIdHint "Bank_B")
+  bankC <- allocatePartyWithHint "Bank_C" (PartyIdHint "Bank_C")
+  bankD <- allocatePartyWithHint "Bank_D" (PartyIdHint "Bank_D")
+  regulator <- allocatePartyWithHint "Regulator" (PartyIdHint "Regulator")
 
-  -- Setup users
-  jpmId <- validateUserId "jpmorgan"
-  boaId <- validateUserId "bofa"
-  wellsId <- validateUserId "wells"
-  citiId <- validateUserId "citi"
-  fincenId <- validateUserId "fincen"
+  bankAId <- validateUserId "banka"
+  bankBId <- validateUserId "bankb"
+  bankCId <- validateUserId "bankc"
+  bankDId <- validateUserId "bankd"
+  regulatorId <- validateUserId "regulator"
 
-  createUser (User jpmId (Some jpmorgan)) [CanActAs jpmorgan]
-  createUser (User boaId (Some bankOfAmerica)) [CanActAs bankOfAmerica]
-  createUser (User wellsId (Some wells)) [CanActAs wells]
-  createUser (User citiId (Some citi)) [CanActAs citi]
-  createUser (User fincenId (Some regulator)) [CanActAs regulator]
+  createUser (User bankAId (Some bankA)) [CanActAs bankA]
+  createUser (User bankBId (Some bankB)) [CanActAs bankB]
+  createUser (User bankCId (Some bankC)) [CanActAs bankC]
+  createUser (User bankDId (Some bankD)) [CanActAs bankD]
+  createUser (User regulatorId (Some regulator)) [CanActAs regulator]
 
   now <- getTime
-  let observers = [jpmorgan, bankOfAmerica, wells, citi, regulator]
+  let observers = [bankA, bankB, bankC, bankD, regulator]
 
-  debug "=== AML Network Demo Setup Complete ==="
-  debug $ "JPMorgan Chase: " <> show jpmorgan
-  debug $ "Bank of America: " <> show bankOfAmerica
-  debug $ "Wells Fargo: " <> show wells
-  debug $ "Citibank: " <> show citi
-  debug $ "FinCEN (Regulator): " <> show regulator
+  debug "=== AML Network Setup Complete ==="
+  debug $ "Bank A: " <> show bankA
+  debug $ "Bank B: " <> show bankB
+  debug $ "Bank C: " <> show bankC
+  debug $ "Bank D: " <> show bankD
+  debug $ "Regulator: " <> show regulator
 
-  -- Create initial reputations
-  submit jpmorgan do
+  submit bankA do
     createCmd BankReputation with
-      bank = jpmorgan
+      bank = bankA
       totalPredictions = 156
       correctPredictions = 142
       accuracy = 0.91
@@ -50,9 +47,9 @@ setup_demo = script do
       lastUpdated = now
       networkParticipants = observers
 
-  submit bankOfAmerica do
+  submit bankB do
     createCmd BankReputation with
-      bank = bankOfAmerica
+      bank = bankB
       totalPredictions = 134
       correctPredictions = 115
       accuracy = 0.86
@@ -60,9 +57,9 @@ setup_demo = script do
       lastUpdated = now
       networkParticipants = observers
 
-  submit wells do
+  submit bankC do
     createCmd BankReputation with
-      bank = wells
+      bank = bankC
       totalPredictions = 98
       correctPredictions = 81
       accuracy = 0.83
@@ -70,9 +67,9 @@ setup_demo = script do
       lastUpdated = now
       networkParticipants = observers
 
-  submit citi do
+  submit bankD do
     createCmd BankReputation with
-      bank = citi
+      bank = bankD
       totalPredictions = 112
       correctPredictions = 89
       accuracy = 0.79
