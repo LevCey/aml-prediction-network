@@ -8,7 +8,7 @@ A privacy-preserving coordination layer that turns isolated institutional judgme
 
 **Landing Page:** [amlprediction.com](https://amlprediction.com)
 **Live Demo:** [amlprediction.network](https://amlprediction.network)
-**Video:** [youtu.be/OnXVF5nY2yI](https://youtu.be/OnXVF5nY2yI)
+**Video:** [youtu.be/6mbqRq8GPiA](https://youtu.be/6mbqRq8GPiA)
 
 ![Dashboard Screenshot](assets/images/dashboard-screenshot.png)
 
