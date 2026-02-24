@@ -14,7 +14,7 @@ const BANKS = [
   { key: 'Bank_D', userId: 'bankd', name: 'Bank D' },
 ];
 
-// Lazy-init keep-alive agent (Canton DevNet has ~4 connection limit)
+// keep-alive agent (DevNet connection limit)
 function getAgent() {
   if (!httpAgent) {
     try {
@@ -29,7 +29,7 @@ async function cantonFetch(path, body, method = 'POST') {
   const agent = getAgent();
   const url = `${CANTON_API}${path}`;
 
-  // Use node:http for keep-alive if available, otherwise fetch
+  // Use node:http if available, fall back to fetch
   if (agent) {
     const http = require('http');
     return new Promise((resolve, reject) => {
@@ -52,7 +52,7 @@ async function cantonFetch(path, body, method = 'POST') {
     });
   }
 
-  // Fallback to fetch
+  // Fallback
   const opts = body
     ? { method, headers: { 'Content-Type': 'application/json', 'Connection': 'keep-alive' }, body: JSON.stringify(body), signal: AbortSignal.timeout(15000) }
     : { method, headers: { 'Connection': 'keep-alive' }, signal: AbortSignal.timeout(8000) };
@@ -124,7 +124,6 @@ async function runOnChain(txId, base, variance, reps) {
     return { ...b, confidence, weight, party: parties[i] };
   });
 
-  // 1. Create PredictionMarket
   const createRes = await cantonSubmit('banka', `create-${txId}`, [parties[0]], [{
     CreateCommand: {
       templateId: `#${PKG}:PredictionMarket:PredictionMarket`,
@@ -137,7 +136,6 @@ async function runOnChain(txId, base, variance, reps) {
   let market = findCreated(createRes, ':PredictionMarket');
   if (!market) throw new Error('Failed to create market');
 
-  // 2. Submit votes
   for (const vote of votes) {
     const voteRes = await cantonSubmit(vote.userId, `vote-${txId}-${vote.key}`, [vote.party], [{
       ExerciseCommand: {
@@ -152,7 +150,6 @@ async function runOnChain(txId, base, variance, reps) {
     market = next;
   }
 
-  // 3. Close market early (all votes in)
   const closeRes = await cantonSubmit('banka', `close-${txId}`, [parties[0]], [{
     ExerciseCommand: {
       templateId: `#${PKG}:PredictionMarket:PredictionMarket`,
@@ -164,7 +161,6 @@ async function runOnChain(txId, base, variance, reps) {
   const riskScoreContract = findCreated(closeRes, ':RiskScore');
   if (!riskScoreContract) throw new Error('CloseMarket failed');
 
-  // 4. Determine action
   const actionRes = await cantonSubmit('banka', `action-${txId}`, [parties[0]], [{
     ExerciseCommand: {
       templateId: `#${PKG}:PredictionMarket:RiskScore`,

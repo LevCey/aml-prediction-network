@@ -36,7 +36,7 @@ export default function Demo() {
     fetch('/api/health').then(r => r.json()).then(d => setLedgerConnected(d.status === 'ok')).catch(() => setLedgerConnected(false))
   }, [])
 
-  // Step 1→2: advance when marketResult arrives (not on timer)
+  // advance to aggregation when marketResult arrives
   useEffect(() => {
     if (step === 1 && marketResult) {
       const timer = setTimeout(() => setStep(2), 800)
@@ -44,7 +44,7 @@ export default function Demo() {
     }
   }, [step, marketResult])
 
-  // Step 2: animate prediction bars
+  // animate prediction bars
   useEffect(() => {
     if (step === 2 && marketResult?.votes) {
       setAnimatedPredictions([])
@@ -52,7 +52,7 @@ export default function Demo() {
     }
   }, [step, marketResult])
 
-  // Step 2: animate score counter
+  // animate score counter
   useEffect(() => {
     if (step === 2 && marketResult && animatedPredictions.length === marketResult.votes.length) {
       const target = marketResult.riskScore
@@ -66,7 +66,7 @@ export default function Demo() {
     }
   }, [step, animatedPredictions, marketResult])
 
-  // Step 3: show scene2 result after delay
+  // show cross-bank result after delay
   useEffect(() => {
     if (step === 3) {
       setShowScene2Result(false)
@@ -208,7 +208,7 @@ export default function Demo() {
       )}
 
       <main className="cinema-stage">
-        {/* Step 0: Intro */}
+        {/* Intro */}
         {step === 0 && (
           <div className="cinema-intro">
             <h1>From Shared Ledgers to Shared Judgment</h1>
@@ -229,7 +229,7 @@ export default function Demo() {
           </div>
         )}
 
-        {/* Step 1: Detection */}
+        {/* Detection */}
         {step === 1 && (
           <div className="cinema-demo step-pane">
             <div className="cinema-alert">
@@ -247,7 +247,7 @@ export default function Demo() {
           </div>
         )}
 
-        {/* Step 2: Aggregation & Decision */}
+        {/* Aggregation */}
         {step === 2 && marketResult && (
           <div className="cinema-demo step-pane">
             <div className="cinema-market">
@@ -319,7 +319,7 @@ export default function Demo() {
           </div>
         )}
 
-        {/* Step 3: Cross-Bank Network Impact */}
+        {/* Cross-bank */}
         {step === 3 && marketResult && (
           <div className="cinema-demo step-pane">
             <div className="scene2-divider"><span className="scene2-time">⏱ 30 minutes later...</span></div>
