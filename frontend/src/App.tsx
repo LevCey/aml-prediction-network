@@ -113,7 +113,7 @@ function DashboardView({ devnet, loading }: { devnet: DevnetStats; loading: bool
     { transactionId: 'TX-45678901', creator: 'Bank C', votes: 5, isOpen: true, riskScore: 34.1, action: 'APPROVED' },
   ];
 
-  const displayContracts = devnet.contracts.length > 0 ? devnet.contracts : sampleContracts;
+  const displayContracts = sampleContracts;
   const totalCount = devnet.totalContracts > 0 ? devnet.totalContracts : 47;
 
   return (
