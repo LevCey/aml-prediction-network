@@ -316,3 +316,16 @@
   .scene2-impact { gap: 20px; }
   .impact-num { font-size: 20px; }
 }
+
+.canton-progress {
+  margin-top: 1.5rem;
+  color: #00e5ff;
+  font-size: 0.9rem;
+  font-family: 'JetBrains Mono', monospace;
+  animation: fadeIn 0.3s ease;
+}
+.canton-spinner {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }

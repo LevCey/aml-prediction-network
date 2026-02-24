@@ -28,6 +28,7 @@ export default function Demo() {
   const [showConfirm, setShowConfirm] = useState(false)
   const [userDecision, setUserDecision] = useState<string | null>(null)
   const [showScene2Result, setShowScene2Result] = useState(false)
+  const [cantonStep, setCantonStep] = useState('')
 
   const scenario = SCENARIOS.find(s => s.id === scenarioId) || SCENARIOS[0]
 
@@ -35,13 +36,13 @@ export default function Demo() {
     fetch('/api/health').then(r => r.json()).then(d => setLedgerConnected(d.status === 'ok')).catch(() => setLedgerConnected(false))
   }, [])
 
-  // Step 1→2: auto-advance after detection animation
+  // Step 1→2: advance when marketResult arrives (not on timer)
   useEffect(() => {
-    if (step === 1) {
-      const timer = setTimeout(() => setStep(2), 2500)
+    if (step === 1 && marketResult) {
+      const timer = setTimeout(() => setStep(2), 800)
       return () => clearTimeout(timer)
     }
-  }, [step])
+  }, [step, marketResult])
 
   // Step 2: animate prediction bars
   useEffect(() => {
@@ -78,8 +79,20 @@ export default function Demo() {
     setStep(1)
     setUserDecision(null)
     setShowScene2Result(false)
+    setCantonStep('Creating prediction market...')
+    const steps = [
+      [3000, 'Bank A submitting vote...'],
+      [7000, 'Bank B submitting vote...'],
+      [11000, 'Bank C submitting vote...'],
+      [15000, 'Bank D submitting vote...'],
+      [20000, 'Closing market...'],
+      [28000, 'Computing risk score...'],
+    ]
+    const timers = steps.map(([ms, msg]) => setTimeout(() => setCantonStep(msg as string), ms as number))
     const res = await fetch('/api/demo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ scenario: scenarioId }) })
     const data: DemoResponse = await res.json()
+    timers.forEach(clearTimeout)
+    setCantonStep('')
     if (data.success) {
       setMarketResult(data.market)
       setOnChain(data.onChain || false)
@@ -90,7 +103,7 @@ export default function Demo() {
   const reset = useCallback(() => {
     setStep(0); setMarketResult(null); setAnimatedPredictions([]); setDisplayScore(0)
     setUserDecision(null); setShowConfirm(false); setShowScene2Result(false)
-    setOnChain(false); setContractIds(null)
+    setOnChain(false); setContractIds(null); setCantonStep('')
   }, [])
 
   const handleDecision = (action: string) => {
@@ -230,6 +243,7 @@ export default function Demo() {
               <div className="alert-tx">TX-{marketResult?.transactionId.split('-')[1]}</div>
             </div>
             <div className="step-hint">Analyzing across network...</div>
+            {cantonStep && <div className="canton-progress"><span className="canton-spinner">⟳</span> {cantonStep}</div>}
           </div>
         )}
 

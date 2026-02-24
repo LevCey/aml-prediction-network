@@ -150,7 +150,7 @@ async function runOnChain(txId, base, variance, reps) {
       }
     }]);
     const next = findCreated(voteRes, ':PredictionMarket');
-    if (!next) throw new Error(`Vote failed for ${vote.key}: ${JSON.stringify(voteRes).slice(0, 300)}`);
+    if (!next) throw new Error(`Vote failed for ${vote.key}`);
     market = next;
   }
 
@@ -225,13 +225,12 @@ export default async function handler(req, res) {
   const reps = await loadReputations();
   marketCount++;
 
-  let result, onChain = false, debugError = null;
+  let result, onChain = false;
   try {
     result = await runOnChain(txId, base, variance, reps);
     onChain = true;
   } catch (err) {
-    debugError = err.message;
-    console.warn('On-chain flow failed, using fallback:', err.message);
+    console.warn('On-chain failed:', err.message);
     result = runFallback(txId, base, variance, reps);
   }
 
@@ -240,7 +239,7 @@ export default async function handler(req, res) {
 
   res.json({
     success: true, mode: 'canton-devnet', onChain, ledger: onChain,
-    transactionId: txId, marketCount, debugError,
+    transactionId: txId, marketCount,
     contractIds: result.contractIds,
     market: {
       transactionId: txId, amount: 25000, destination: 'Binance (Crypto Exchange)',
