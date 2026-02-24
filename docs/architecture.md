@@ -45,36 +45,36 @@ Tracks prediction accuracy and adjusts participant influence.
 ## Coordination Workflow
 
 ```
-1. SIGNAL CREATION
-   Bank A detects suspicious activity
-   └─> Submits anonymized pattern to network
-       (behavioral signature only — no customer data)
+SIGNAL CREATION
+  Bank A detects suspicious activity
+  └─> Submits anonymized pattern to network
+      (behavioral signature only — no customer data)
 
-2. BELIEF SUBMISSION
-   Network participants evaluate the hypothesis
-   └─> Each submits a confidence estimate (pᵢ)
-       weighted by reputation (wᵢ)
+BELIEF SUBMISSION
+  Network participants evaluate the hypothesis
+  └─> Each submits a confidence estimate (pᵢ)
+      weighted by reputation (wᵢ)
 
-3. AGGREGATION
-   Canton aggregates beliefs into shared risk score
-   └─> B = Σ(wᵢ · pᵢ) / Σ(wᵢ)
-       All participants receive the same output
+AGGREGATION
+  Canton aggregates beliefs into shared risk score
+  └─> B = Σ(wᵢ · pᵢ) / Σ(wᵢ)
+      All participants receive the same output
 
-4. ACTION
-   Risk score triggers configurable response
-   └─> ≥ 80%: SAR auto-filed, regulator notified
-       60–80%: Enhanced due diligence
-       < 60%: No network action
+ACTION
+  Risk score triggers configurable response
+  └─> ≥ 80%: SAR auto-filed, regulator notified
+      60–80%: Enhanced due diligence
+      < 60%: No network action
 
-5. RESOLUTION
-   Real-world outcome confirms or rejects hypothesis
-   └─> Reputation weights updated accordingly
-       Accurate contributors gain influence
-       Inaccurate contributors lose influence
+RESOLUTION
+  Real-world outcome confirms or rejects hypothesis
+  └─> Reputation weights updated accordingly
+      Accurate contributors gain influence
+      Inaccurate contributors lose influence
 
-6. NETWORK LEARNS
-   Updated weights improve future aggregation quality
-   └─> System becomes self-correcting over time
+NETWORK LEARNS
+  Updated weights improve future aggregation quality
+  └─> System becomes self-correcting over time
 ```
 
 ---

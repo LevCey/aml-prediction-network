@@ -33,8 +33,8 @@ aml_network_demo = script do
   let deadline = addRelTime now (hours 24)
   let observers = [bankA, bankB, bankC, regulator]
 
-  -- SCENE 1: Bank A detects fraud pattern
-  debug "=== SCENE 1: Bank A Detects Fraud ==="
+  -- Bank A detects fraud pattern
+  debug "=== Bank A Detects Fraud ==="
 
   patternId <- submit bankA do
     createCmd FraudPattern with
@@ -55,8 +55,8 @@ aml_network_demo = script do
 
   debug "Pattern verified by Bank B"
 
-  -- SCENE 2: Fraudster tries Bank B
-  debug "=== SCENE 2: Same Fraudster Attempts Transaction at Bank B ==="
+  -- Fraudster tries Bank B
+  debug "=== Same Fraudster Attempts Transaction at Bank B ==="
 
   txId <- submit bankB do
     createCmd SuspiciousTransaction with
@@ -70,8 +70,7 @@ aml_network_demo = script do
 
   debug "Suspicious transaction flagged"
 
-  -- SCENE 3: Create prediction market
-  debug "=== SCENE 3: Prediction Market Created ==="
+  debug "=== Prediction Market Created ==="
 
   marketId <- submit bankB do
     createCmd PredictionMarket with
@@ -86,8 +85,7 @@ aml_network_demo = script do
 
   debug "Prediction market is now open for voting"
 
-  -- SCENE 4: Banks submit votes
-  debug "=== SCENE 4: Banks Vote ==="
+  debug "=== Banks Vote ==="
 
   -- Bank A: High confidence (they just dealt with this fraudster!)
   marketId2 <- submit bankA do
@@ -113,8 +111,7 @@ aml_network_demo = script do
       stake = 100.0
   debug "Bank C voted: 70% fraud, $100 stake"
 
-  -- SCENE 5: Close market and calculate risk score
-  debug "=== SCENE 5: Market Closed & Risk Score Calculated ==="
+  debug "=== Market Closed & Risk Score Calculated ==="
 
   setTime deadline
 
@@ -123,8 +120,7 @@ aml_network_demo = script do
 
   debug $ "Weighted Risk Score: " <> show riskScore <> " (78.3%)"
 
-  -- SCENE 6: Determine action
-  debug "=== SCENE 6: Action Determined ==="
+  debug "=== Action Determined ==="
 
   (scoreId2, sarOpt) <- submit bankB do
     exerciseCmd scoreId DetermineAction
@@ -132,8 +128,7 @@ aml_network_demo = script do
   debug $ "Action: REVIEW - Enhanced due diligence required"
   debug $ "SAR auto-filed: " <> show (isSome sarOpt)
 
-  -- SCENE 7: Investigation confirms fraud
-  debug "=== SCENE 7: Fraud Confirmed ==="
+  debug "=== Fraud Confirmed ==="
 
   verificationId <- submit bankB do
     exerciseCmd scoreId2 VerifyOutcome with
@@ -143,8 +138,7 @@ aml_network_demo = script do
 
   debug "Outcome verified - Banks' predictions were correct!"
 
-  -- SCENE 8: Update bank reputations
-  debug "=== SCENE 8: Bank Reputations Updated ==="
+  debug "=== Reputations Updated ==="
 
   -- Initialize reputations
   repA <- submit bankA do
