@@ -81,12 +81,12 @@ export default function Demo() {
     setShowScene2Result(false)
     setCantonStep('Creating prediction market...')
     const steps = [
-      [3000, 'Bank A submitting vote...'],
-      [7000, 'Bank B submitting vote...'],
-      [11000, 'Bank C submitting vote...'],
-      [15000, 'Bank D submitting vote...'],
-      [20000, 'Closing market...'],
-      [28000, 'Computing risk score...'],
+      [2000, 'Bank A submitting vote...'],
+      [4000, 'Bank B submitting vote...'],
+      [6000, 'Bank C submitting vote...'],
+      [8000, 'Bank D submitting vote...'],
+      [10000, 'Closing market...'],
+      [12000, 'Computing risk score...'],
     ]
     const timers = steps.map(([ms, msg]) => setTimeout(() => setCantonStep(msg as string), ms as number))
     const res = await fetch('/api/demo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ scenario: scenarioId }) })

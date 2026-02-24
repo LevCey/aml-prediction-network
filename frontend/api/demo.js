@@ -115,9 +115,7 @@ function reputationToWeight(score) {
 async function runOnChain(txId, base, variance, reps) {
   const parties = BANKS.map(b => b.key + PARTY_SUFFIX);
   const regParty = 'Regulator' + PARTY_SUFFIX;
-  const DEADLINE_SECS = 25;
-  const deadline = new Date(Date.now() + DEADLINE_SECS * 1000).toISOString();
-  const startTime = Date.now();
+  const deadline = new Date(Date.now() + 3600 * 1000).toISOString(); // 1hr, will close early
 
   const votes = BANKS.map((b, i) => {
     const rep = reps[b.key] || { score: 50 };
@@ -154,16 +152,12 @@ async function runOnChain(txId, base, variance, reps) {
     market = next;
   }
 
-  // 3. Wait for deadline then close
-  const elapsed = Date.now() - startTime;
-  const waitMs = Math.max(0, (DEADLINE_SECS * 1000 + 1000) - elapsed);
-  if (waitMs > 0) await delay(waitMs);
-
+  // 3. Close market early (all votes in)
   const closeRes = await cantonSubmit('banka', `close-${txId}`, [parties[0]], [{
     ExerciseCommand: {
       templateId: `#${PKG}:PredictionMarket:PredictionMarket`,
       contractId: market.contractId,
-      choice: 'CloseMarket',
+      choice: 'CloseMarketEarly',
       choiceArgument: {}
     }
   }]);
