@@ -225,11 +225,12 @@ export default async function handler(req, res) {
   const reps = await loadReputations();
   marketCount++;
 
-  let result, onChain = false;
+  let result, onChain = false, debugError = null;
   try {
     result = await runOnChain(txId, base, variance, reps);
     onChain = true;
   } catch (err) {
+    debugError = err.message;
     console.warn('On-chain flow failed, using fallback:', err.message);
     result = runFallback(txId, base, variance, reps);
   }
@@ -239,7 +240,7 @@ export default async function handler(req, res) {
 
   res.json({
     success: true, mode: 'canton-devnet', onChain, ledger: onChain,
-    transactionId: txId, marketCount,
+    transactionId: txId, marketCount, debugError,
     contractIds: result.contractIds,
     market: {
       transactionId: txId, amount: 25000, destination: 'Binance (Crypto Exchange)',
