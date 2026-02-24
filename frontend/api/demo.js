@@ -146,7 +146,7 @@ async function runOnChain(txId, base, variance, reps) {
         templateId: `#${PKG}:PredictionMarket:PredictionMarket`,
         contractId: market.contractId,
         choice: 'SubmitVote',
-        choiceArgument: { voter: vote.party, confidence: String(vote.confidence), stake: String(vote.weight) }
+        choiceArgument: { voter: vote.party, confidence: vote.confidence.toFixed(10), stake: vote.weight.toFixed(10) }
       }
     }]);
     const next = findCreated(voteRes, ':PredictionMarket');
