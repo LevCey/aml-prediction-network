@@ -54,7 +54,7 @@ template PredictionMarket
 
         create this with votes = newVotes
 
-    -- Close market and calculate risk score
+    -- Close market and calculate risk score (after deadline)
     choice CloseMarket : (Decimal, ContractId RiskScore)
       controller creator
       do
@@ -82,6 +82,33 @@ template PredictionMarket
         -- Mark market as closed
         create this with isOpen = False
 
+        return (riskScore, scoreId)
+
+    -- Close market early when all participants have voted
+    choice CloseMarketEarly : (Decimal, ContractId RiskScore)
+      controller creator
+      do
+        assertMsg "Market must be open" isOpen
+        let allVoted = all (\p -> M.member p votes) participants
+        assertMsg "Not all participants have voted" allVoted
+
+        currentTime <- getTime
+        let votesList = M.toList votes
+        let totalStake = sum [stake | (_, BankVote {stake}) <- votesList]
+        let weightedSum = sum [confidence * stake | (_, BankVote {confidence, stake}) <- votesList]
+        let riskScore = if totalStake > 0.0 then weightedSum / totalStake else 0.0
+
+        scoreId <- create RiskScore with
+          transactionId
+          score = riskScore
+          timestamp = currentTime
+          contributors = map fst votesList
+          creator
+          regulator
+          actionTaken = None
+          sarFiled = False
+
+        create this with isOpen = False
         return (riskScore, scoreId)
 
 
@@ -341,5 +368,48 @@ test_sar_auto_filing = script do
         exerciseCmd sarId AcknowledgeSAR
       debug ">>> Regulator acknowledged SAR"
     None -> debug "No SAR filed"
+
+  return riskScore
+
+
+-- Test CloseMarketEarly (no deadline wait)
+test_close_market_early = script do
+  bankA <- allocateParty "BankA"
+  bankB <- allocateParty "BankB"
+  regulator <- allocateParty "FinCEN"
+
+  now <- getTime
+  let deadline = addRelTime now (hours 24)
+
+  marketId <- submit bankA do
+    createCmd PredictionMarket with
+      marketId = "EARLY_001"
+      transactionId = "TX_EARLY"
+      creator = bankA
+      participants = [bankA, bankB]
+      deadline
+      votes = M.empty
+      regulator
+      isOpen = True
+
+  marketId2 <- submit bankA do
+    exerciseCmd marketId SubmitVote with
+      voter = bankA
+      confidence = 0.90
+      stake = 2.0
+
+  marketId3 <- submit bankB do
+    exerciseCmd marketId2 SubmitVote with
+      voter = bankB
+      confidence = 0.80
+      stake = 1.5
+
+  -- Close early (before deadline) since all voted
+  (riskScore, scoreId) <- submit bankA do
+    exerciseCmd marketId3 CloseMarketEarly
+
+  -- (0.90*2.0 + 0.80*1.5) / (2.0+1.5) = 3.0/3.5 = 0.857
+  debug $ "Early close risk score: " <> show riskScore
+  assertMsg "Score should be ~0.857" (riskScore >= 0.85 && riskScore <= 0.86)
 
   return riskScore

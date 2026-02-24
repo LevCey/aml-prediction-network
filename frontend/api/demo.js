@@ -6,12 +6,35 @@ let cachedReputations = null;
 let cacheTime = 0;
 let marketCount = 47;
 
+const BANKS = [
+  { key: 'Bank_A', userId: 'banka', name: 'Bank A' },
+  { key: 'Bank_B', userId: 'bankb', name: 'Bank B' },
+  { key: 'Bank_C', userId: 'bankc', name: 'Bank C' },
+  { key: 'Bank_D', userId: 'bankd', name: 'Bank D' },
+];
+
 async function cantonFetch(path, body) {
   const opts = body
     ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: AbortSignal.timeout(8000) }
     : { signal: AbortSignal.timeout(5000) };
   const r = await fetch(`${CANTON_API}${path}`, opts);
   return r.json();
+}
+
+async function cantonSubmit(userId, commandId, actAs, commands) {
+  return cantonFetch('/v2/commands/submit-and-wait', { userId, commandId, actAs, commands });
+}
+
+// Find a created event matching a template fragment in the submit-and-wait response
+function findCreated(res, templateFragment) {
+  const events = res?.transaction?.events || res?.events || [];
+  for (const evt of events) {
+    const created = evt.CreatedEvent || evt.created;
+    if (created && String(created.templateId || '').includes(templateFragment)) {
+      return { contractId: created.contractId, args: created.createArguments || {} };
+    }
+  }
+  return null;
 }
 
 async function loadReputations() {
@@ -22,9 +45,8 @@ async function loadReputations() {
       filter: { filtersByParty: {}, filtersForAnyParty: { cumulative: [{ identifierFilter: { WildcardFilter: { value: { includeCreatedEventBlob: false } } } }] } },
       verbose: true, activeAtOffset: offset
     });
-    const entries = Array.isArray(data) ? data : [];
     const reps = {};
-    for (const item of entries) {
+    for (const item of (Array.isArray(data) ? data : [])) {
       const key = Object.keys(item.contractEntry || {})[0];
       if (!key) continue;
       const ce = item.contractEntry[key].createdEvent || {};
@@ -37,7 +59,7 @@ async function loadReputations() {
     cacheTime = Date.now();
     return reps;
   } catch {
-    return { Bank_A: { score: 92, accuracy: 0.91 }, Bank_B: { score: 85, accuracy: 0.86 }, Bank_C: { score: 78, accuracy: 0.83 }, Bank_D: { score: 74, accuracy: 0.79 } };
+    return { Bank_A: { score: 92 }, Bank_B: { score: 85 }, Bank_C: { score: 78 }, Bank_D: { score: 74 } };
   }
 }
 
@@ -49,20 +71,100 @@ function reputationToWeight(score) {
   return 0.5;
 }
 
-async function createPredictionMarket(txId) {
-  try {
-    const banks = ['Bank_A', 'Bank_B', 'Bank_C', 'Bank_D'].map(b => b + PARTY_SUFFIX);
-    const reg = 'Regulator' + PARTY_SUFFIX;
-    const deadline = new Date(Date.now() + 86400000).toISOString();
-    await cantonFetch('/v2/commands/submit-and-wait', {
-      userId: 'banka', commandId: `market-${txId}`, actAs: [banks[0]],
-      commands: [{ CreateCommand: { templateId: `#${PKG}:PredictionMarket:PredictionMarket`, createArguments: {
-        marketId: `MARKET-${txId}`, transactionId: txId, creator: banks[0],
-        participants: banks, deadline, votes: {}, regulator: reg, isOpen: true
-      }}}]
-    });
-    return true;
-  } catch { return false; }
+// Full on-chain flow: Create → Vote → CloseEarly → DetermineAction
+async function runOnChain(txId, base, variance, reps) {
+  const parties = BANKS.map(b => b.key + PARTY_SUFFIX);
+  const regParty = 'Regulator' + PARTY_SUFFIX;
+  const deadline = new Date(Date.now() + 600000).toISOString();
+
+  // Generate confidence values per bank
+  const votes = BANKS.map((b, i) => {
+    const rep = reps[b.key] || { score: 50 };
+    const weight = reputationToWeight(rep.score);
+    const confidence = Math.min(0.95, Math.max(0.15, base + (Math.random() - 0.5) * variance * 2));
+    return { ...b, confidence, weight, party: parties[i] };
+  });
+
+  // 1. Create PredictionMarket
+  const createRes = await cantonSubmit('banka', `create-${txId}`, [parties[0]], [{
+    CreateCommand: {
+      templateId: `#${PKG}:PredictionMarket:PredictionMarket`,
+      createArguments: {
+        marketId: `MARKET-${txId}`, transactionId: txId, creator: parties[0],
+        participants: parties, deadline, votes: {}, regulator: regParty, isOpen: true
+      }
+    }
+  }]);
+  let market = findCreated(createRes, ':PredictionMarket:');
+  if (!market) throw new Error('Failed to create market');
+
+  // 2. Submit votes sequentially (each exercise consumes and recreates the contract)
+  for (const vote of votes) {
+    const voteRes = await cantonSubmit(vote.userId, `vote-${txId}-${vote.key}`, [vote.party], [{
+      ExerciseCommand: {
+        templateId: `#${PKG}:PredictionMarket:PredictionMarket`,
+        contractId: market.contractId,
+        choice: 'SubmitVote',
+        choiceArgument: { voter: vote.party, confidence: String(vote.confidence), stake: String(vote.weight) }
+      }
+    }]);
+    const next = findCreated(voteRes, ':PredictionMarket:');
+    if (!next) throw new Error(`Vote failed for ${vote.key}`);
+    market = next;
+  }
+
+  // 3. Close market early (all votes in)
+  const closeRes = await cantonSubmit('banka', `close-${txId}`, [parties[0]], [{
+    ExerciseCommand: {
+      templateId: `#${PKG}:PredictionMarket:PredictionMarket`,
+      contractId: market.contractId,
+      choice: 'CloseMarketEarly',
+      choiceArgument: {}
+    }
+  }]);
+  const riskScoreContract = findCreated(closeRes, ':RiskScore:');
+  if (!riskScoreContract) throw new Error('CloseMarketEarly failed');
+
+  // 4. Determine action (auto-files SAR if score >= 0.8)
+  const actionRes = await cantonSubmit('banka', `action-${txId}`, [parties[0]], [{
+    ExerciseCommand: {
+      templateId: `#${PKG}:PredictionMarket:RiskScore`,
+      contractId: riskScoreContract.contractId,
+      choice: 'DetermineAction',
+      choiceArgument: {}
+    }
+  }]);
+  const finalScore = findCreated(actionRes, ':RiskScore:');
+  const sar = findCreated(actionRes, ':SARReport:');
+
+  const onChainScore = parseFloat(riskScoreContract.args.score || finalScore?.args?.score) || 0;
+
+  return {
+    votes: votes.map(v => ({
+      bank: v.name, confidence: Math.round(v.confidence * 1000) / 10,
+      weight: v.weight, isRegulator: false, txId
+    })),
+    riskScore: Math.round(onChainScore * 1000) / 10,
+    contractIds: {
+      market: market.contractId,
+      riskScore: riskScoreContract.contractId,
+      sar: sar?.contractId || null
+    }
+  };
+}
+
+// Fallback: compute locally (same logic, no Canton dependency)
+function runFallback(txId, base, variance, reps) {
+  const votes = BANKS.map(b => {
+    const rep = reps[b.key] || { score: 50 };
+    const weight = reputationToWeight(rep.score);
+    const confidence = Math.min(95, Math.max(15, Math.round((base + (Math.random() - 0.5) * variance * 2) * 100)));
+    return { bank: b.name, confidence, weight, isRegulator: false, txId };
+  });
+  const totalWeight = votes.reduce((s, v) => s + v.weight, 0);
+  const weightedSum = votes.reduce((s, v) => s + (v.confidence / 100) * v.weight, 0);
+  const riskScore = Math.round((weightedSum / totalWeight) * 1000) / 10;
+  return { votes, riskScore, contractIds: null };
 }
 
 export function getMarketCount() { return marketCount; }
@@ -76,45 +178,30 @@ export default async function handler(req, res) {
   const { base, variance } = scenarios[scenario] || scenarios.high;
   const txId = `TX-${Math.floor(Math.random() * 100000000)}`;
 
+  const reps = await loadReputations();
+  marketCount++;
+
+  let result, onChain = false;
   try {
-    const reps = await loadReputations();
-    marketCount++;
-
-    const bankConfig = [
-      { key: 'Bank_A', name: 'Bank A' },
-      { key: 'Bank_B', name: 'Bank B' },
-      { key: 'Bank_C', name: 'Bank C' },
-      { key: 'Bank_D', name: 'Bank D' },
-    ];
-
-    const votes = bankConfig.map(b => {
-      const rep = reps[b.key] || { score: 50 };
-      const weight = reputationToWeight(rep.score);
-      const confidence = Math.min(95, Math.max(15, Math.round((base + (Math.random() - 0.5) * variance * 2) * 100)));
-      return { bank: b.name, confidence, weight, isRegulator: false, txId };
-    });
-    votes.push({ bank: 'Regulator', confidence: 0, weight: 0, isRegulator: true, txId });
-
-    const nonReg = votes.filter(v => !v.isRegulator);
-    const totalWeight = nonReg.reduce((s, v) => s + v.weight, 0);
-    const weightedSum = nonReg.reduce((s, v) => s + (v.confidence / 100) * v.weight, 0);
-    const riskScore = Math.round((weightedSum / totalWeight) * 1000) / 10;
-
-    // Create contract on Canton (fire-and-forget, don't block response)
-    createPredictionMarket(txId);
-
-    const action = riskScore >= 80 ? 'BLOCK' : riskScore >= 60 ? 'REVIEW' : 'APPROVE';
-    res.json({
-      success: true, mode: 'canton-devnet', ledger: true,
-      transactionId: txId, marketCount,
-      market: {
-        transactionId: txId, amount: 25000, destination: 'Binance (Crypto Exchange)',
-        riskFlags: ['New account (< 30 days)', 'First crypto transaction', 'High-risk jurisdiction'],
-        votes, riskScore, action
-      },
-      riskScore, action, parties: 5
-    });
+    result = await runOnChain(txId, base, variance, reps);
+    onChain = true;
   } catch (err) {
-    res.json({ success: false, error: err.message, mode: 'canton-devnet' });
+    console.warn('On-chain flow failed, using fallback:', err.message);
+    result = runFallback(txId, base, variance, reps);
   }
+
+  const allVotes = [...result.votes, { bank: 'Regulator', confidence: 0, weight: 0, isRegulator: true, txId }];
+  const action = result.riskScore >= 80 ? 'BLOCK' : result.riskScore >= 60 ? 'REVIEW' : 'APPROVE';
+
+  res.json({
+    success: true, mode: 'canton-devnet', onChain, ledger: onChain,
+    transactionId: txId, marketCount,
+    contractIds: result.contractIds,
+    market: {
+      transactionId: txId, amount: 25000, destination: 'Binance (Crypto Exchange)',
+      riskFlags: ['New account (< 30 days)', 'First crypto transaction', 'High-risk jurisdiction'],
+      votes: allVotes, riskScore: result.riskScore, action
+    },
+    riskScore: result.riskScore, action, parties: 5
+  });
 }

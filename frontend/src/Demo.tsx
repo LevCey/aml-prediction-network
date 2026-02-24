@@ -12,13 +12,17 @@ const SCENARIOS = [
 const STEPS = ['Scenario', 'Detection', 'Decide', 'Network']
 
 interface Vote { bank: string; confidence: number; weight: number; isRegulator?: boolean; txId?: string }
+interface ContractIds { market: string; riskScore: string; sar: string | null }
 interface MarketResult { transactionId: string; votes: Vote[]; riskScore: number; action: string }
+interface DemoResponse { success: boolean; onChain?: boolean; contractIds?: ContractIds; market: MarketResult }
 
 export default function Demo() {
   const [scenarioId, setScenarioId] = useState('high')
   const [step, setStep] = useState(0)
   const [ledgerConnected, setLedgerConnected] = useState(false)
   const [marketResult, setMarketResult] = useState<MarketResult | null>(null)
+  const [onChain, setOnChain] = useState(false)
+  const [contractIds, setContractIds] = useState<ContractIds | null>(null)
   const [animatedPredictions, setAnimatedPredictions] = useState<number[]>([])
   const [displayScore, setDisplayScore] = useState(0)
   const [showConfirm, setShowConfirm] = useState(false)
@@ -75,13 +79,18 @@ export default function Demo() {
     setUserDecision(null)
     setShowScene2Result(false)
     const res = await fetch('/api/demo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ scenario: scenarioId }) })
-    const data = await res.json()
-    if (data.success) setMarketResult(data.market)
+    const data: DemoResponse = await res.json()
+    if (data.success) {
+      setMarketResult(data.market)
+      setOnChain(data.onChain || false)
+      setContractIds(data.contractIds || null)
+    }
   }
 
   const reset = useCallback(() => {
     setStep(0); setMarketResult(null); setAnimatedPredictions([]); setDisplayScore(0)
     setUserDecision(null); setShowConfirm(false); setShowScene2Result(false)
+    setOnChain(false); setContractIds(null)
   }, [])
 
   const handleDecision = (action: string) => {
@@ -228,7 +237,7 @@ export default function Demo() {
         {step === 2 && marketResult && (
           <div className="cinema-demo step-pane">
             <div className="cinema-market">
-              <div className="market-header"><span>Risk Signal Aggregation</span><span className="live-badge">● LIVE</span></div>
+              <div className="market-header"><span>Risk Signal Aggregation</span><span className={`live-badge ${onChain ? 'on-chain' : ''}`}>● {onChain ? 'ON-CHAIN' : 'LIVE'}</span></div>
               <div className="market-votes">
                 {marketResult.votes.filter(v => !v.isRegulator).map((vote, i) => (
                   <div key={i} className={`vote-row ${animatedPredictions.includes(i) ? 'visible' : ''}`}>
@@ -255,6 +264,9 @@ export default function Demo() {
                   <div className="result-score">
                     <div className="score-number">{displayScore}<span>%</span></div>
                     <div className="score-label">Aggregated Risk Score</div>
+                    {onChain && contractIds && (
+                      <div className="score-contract">Canton Contract: {contractIds.riskScore.slice(0, 16)}…</div>
+                    )}
                   </div>
                 </div>
 
@@ -366,7 +378,9 @@ export default function Demo() {
       )}
 
       <footer className="cinema-footer">
-        <span className="proof-badge">✓ Verified on Canton DevNet</span>
+        <span className={`proof-badge ${onChain ? 'verified' : ''}`}>
+          {onChain ? '✓ Verified on Canton DevNet' : '○ Canton DevNet'}
+        </span>
       </footer>
     </div>
   )
