@@ -150,7 +150,7 @@ async function runOnChain(txId, base, variance, reps) {
       }
     }]);
     const next = findCreated(voteRes, ':PredictionMarket');
-    if (!next) throw new Error(`Vote failed for ${vote.key}`);
+    if (!next) throw new Error(`Vote failed for ${vote.key}: ${JSON.stringify(voteRes).slice(0, 300)}`);
     market = next;
   }
 
