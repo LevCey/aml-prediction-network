@@ -99,7 +99,7 @@ This prototype demonstrates:
 
 | Contract | Purpose |
 |----------|---------|
-| `PredictionMarket.daml` | Belief submission, weighted risk scoring, SAR triggers |
+| `PredictionMarket.daml` | Belief submission, weighted risk scoring, early close, SAR triggers |
 | `BankReputation.daml` | Prediction accuracy tracking, voting weight adjustment |
 | `TransactionPattern.daml` | Fraud pattern templates, suspicious transaction matching |
 | `Setup.daml` | DevNet party setup (banks, regulator, operator) |

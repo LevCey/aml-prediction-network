@@ -5,7 +5,7 @@ aml-prediction-network/
 │
 ├── daml/aml-network/                # Daml smart contracts (Canton Network)
 │   ├── daml/
-│   │   ├── PredictionMarket.daml    # Core voting + SAR auto-filing
+│   │   ├── PredictionMarket.daml    # Core voting + SAR auto-filing + CloseMarketEarly
 │   │   ├── BankReputation.daml      # Accuracy tracking & voting power
 │   │   ├── TransactionPattern.daml  # Fraud patterns & suspicious tx
 │   │   ├── Setup.daml              # DevNet setup & party allocation
@@ -27,7 +27,6 @@ aml-prediction-network/
 │
 ├── docs/                            # Technical documentation
 │   ├── architecture.md             # System architecture
-│   ├── demo-scenario.md            # Demo script for presentations
 │   └── deployment-diagram.md       # Canton DevNet deployment
 │
 ├── assets/images/                   # README images
@@ -45,7 +44,7 @@ aml-prediction-network/
 
 | Contract | Purpose |
 |----------|---------|
-| **PredictionMarket.daml** | Banks vote on fraud probability, weighted risk scoring, SAR auto-filing |
+| **PredictionMarket.daml** | Banks vote on fraud probability, weighted risk scoring, SAR auto-filing, early close |
 | **BankReputation.daml** | Tracks prediction accuracy, adjusts voting power |
 | **TransactionPattern.daml** | FraudPattern + SuspiciousTransaction templates |
 | **Setup.daml** | DevNet party setup (banks, regulator, operator) |
@@ -72,4 +71,4 @@ FraudPattern → SuspiciousTransaction → PredictionMarket → RiskScore → SA
 
 ---
 
-**Last Updated**: February 16, 2026
+**Last Updated**: February 24, 2026

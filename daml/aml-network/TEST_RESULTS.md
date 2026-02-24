@@ -2,15 +2,15 @@
 
 ## Build Status: SUCCESS
 
-**Daml SDK Version**: 2.10.2
-**Date**: November 25, 2025
-**Build Output**: `.daml/dist/aml-network-0.0.1.dar`
+**Daml SDK Version**: 3.4.x (Canton Network)
+**Date**: February 2026
+**Build Output**: `.daml/dist/aml-network-1.1.0.dar`
 
 ---
 
 ## Compiled Contracts
 
-### 10 Templates Successfully Compiled
+### 9 Templates Successfully Compiled
 
 **TransactionPattern Module**
 - `FraudPattern` - Pattern sharing without PII
@@ -18,8 +18,10 @@
 - `PredictionMarketProposal` - Market creation proposal
 
 **PredictionMarket Module**
-- `PredictionMarket` - Multi-bank voting system
+- `PredictionMarket` - Multi-bank voting system (includes `CloseMarketEarly`)
 - `RiskScore` - Risk score calculation and actions
+- `SARReport` - Auto-filed suspicious activity report
+- `AuditLog` - Compliance tracking
 - `OutcomeVerification` - Fraud outcome verification
 
 **BankReputation Module**
@@ -27,23 +29,22 @@
 - `VotingPower` - Reputation-based voting power
 - `NetworkStatistics` - Regulator statistics view
 
-**SimplePrediction Module** (Learning example)
-- `SimpleFraudPrediction` - Basic 2-bank voting
-
 ---
 
 ## Contract Choices (Actions)
 
-### 25 Choices Defined
+### 26 Choices Defined
 
 **Core Actions:**
 - `SubmitVote` - Bank submits fraud prediction
-- `CloseMarket` - Calculate weighted risk score
+- `CloseMarket` - Calculate weighted risk score (after deadline)
+- `CloseMarketEarly` - Close when all participants have voted (no deadline wait)
 - `DetermineAction` - BLOCK/REVIEW/APPROVE decision
 - `VerifyOutcome` - Confirm actual fraud status
 - `UpdateReputation` - Update bank accuracy score
 - `VerifyPattern` - Multi-bank pattern verification
 - `CreatePredictionMarket` - Launch new market
+- `AcknowledgeSAR` - Regulator acknowledges SAR receipt
 
 **Query Actions (non-consuming):**
 - `GetReputation` - View bank reputation stats
@@ -142,11 +143,11 @@ Requirements met:
 ```
 daml/
 ├── Main.daml                    # Demo scenario
-├── SimplePrediction.daml        # Learning example
 ├── TransactionPattern.daml      # Pattern sharing (3 templates)
-├── PredictionMarket.daml        # Voting & scoring (3 templates)
-└── BankReputation.daml          # Reputation tracking (3 templates)
+├── PredictionMarket.daml        # Voting & scoring (5 templates, CloseMarketEarly)
+├── BankReputation.daml          # Reputation tracking (3 templates)
+└── Setup.daml                   # DevNet party setup
 ```
 
-**Total Lines of Code**: ~800 lines
+**Total Lines of Code**: ~900 lines
 **Build Artifact**: `.daml/dist/aml-network-1.1.0.dar`

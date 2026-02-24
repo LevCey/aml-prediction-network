@@ -27,7 +27,7 @@ Stores anonymized behavioral patterns and suspicious transaction templates.
 
 Manages the belief submission and aggregation workflow.
 
-- **PredictionMarket** — Multi-party contract where institutions submit confidence estimates. Aggregates into weighted risk score. Time-bound with configurable deadline.
+- **PredictionMarket** — Multi-party contract where institutions submit confidence estimates. Aggregates into weighted risk score. Supports early close when all participants have voted, or time-bound close after deadline.
 - **RiskScore** — Final aggregated output. Includes contributor list, recommended action, and immutable audit trail.
 - **SARReport** — Auto-generated when aggregated risk exceeds threshold (≥80%). Immutable filing record with status tracking.
 - **AuditLog** — Tracks all network actions. Regulator has full read visibility.
