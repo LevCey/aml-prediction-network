@@ -1,14 +1,11 @@
-import http from 'node:http';
-
-const CANTON_HOST = process.env.CANTON_HOST || '46.224.56.32';
-const CANTON_PORT = parseInt(process.env.CANTON_PORT || '7575');
-const CANTON_API = `http://${CANTON_HOST}:${CANTON_PORT}`;
+const CANTON_API = process.env.CANTON_API_URL || 'http://46.224.56.32:7575';
 const PARTY_SUFFIX = '::122031dacd1d842e4499cf58bc1391ec402816ebc0edf2a240b0ff9322f7e7b97a3a';
 const PKG = 'aml-network';
 
 let cachedReputations = null;
 let cacheTime = 0;
 let marketCount = 47;
+let httpAgent = null;
 
 const BANKS = [
   { key: 'Bank_A', userId: 'banka', name: 'Bank A' },
@@ -17,51 +14,55 @@ const BANKS = [
   { key: 'Bank_D', userId: 'bankd', name: 'Bank D' },
 ];
 
-// Keep-alive agent to reuse TCP connections (Canton DevNet has low connection limit)
-const agent = new http.Agent({ keepAlive: true, maxSockets: 1 });
-
-function cantonPost(path, body) {
-  return new Promise((resolve, reject) => {
-    const data = JSON.stringify(body);
-    const req = http.request({
-      hostname: CANTON_HOST, port: CANTON_PORT, path, method: 'POST', agent,
-      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(data) },
-      timeout: 15000
-    }, res => {
-      let buf = '';
-      res.on('data', c => buf += c);
-      res.on('end', () => {
-        try { resolve(JSON.parse(buf)); }
-        catch { reject(new Error(`Parse error: ${buf.slice(0, 200)}`)); }
-      });
-    });
-    req.on('error', reject);
-    req.on('timeout', () => { req.destroy(); reject(new Error('Timeout')); });
-    req.write(data);
-    req.end();
-  });
+// Lazy-init keep-alive agent (Canton DevNet has ~4 connection limit)
+function getAgent() {
+  if (!httpAgent) {
+    try {
+      const http = require('http');
+      httpAgent = new http.Agent({ keepAlive: true, maxSockets: 1 });
+    } catch { httpAgent = false; }
+  }
+  return httpAgent || undefined;
 }
 
-function cantonGet(path) {
-  return new Promise((resolve, reject) => {
-    const req = http.request({
-      hostname: CANTON_HOST, port: CANTON_PORT, path, method: 'GET', agent, timeout: 8000
-    }, res => {
-      let buf = '';
-      res.on('data', c => buf += c);
-      res.on('end', () => {
-        try { resolve(JSON.parse(buf)); }
-        catch { reject(new Error(`Parse error`)); }
+async function cantonFetch(path, body, method = 'POST') {
+  const agent = getAgent();
+  const url = `${CANTON_API}${path}`;
+
+  // Use node:http for keep-alive if available, otherwise fetch
+  if (agent) {
+    const http = require('http');
+    return new Promise((resolve, reject) => {
+      const data = body ? JSON.stringify(body) : '';
+      const parsed = new URL(url);
+      const req = http.request({
+        hostname: parsed.hostname, port: parsed.port, path: parsed.pathname,
+        method, agent,
+        headers: body ? { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(data) } : {},
+        timeout: 15000
+      }, res => {
+        let buf = '';
+        res.on('data', c => buf += c);
+        res.on('end', () => { try { resolve(JSON.parse(buf)); } catch { reject(new Error('Parse error')); } });
       });
+      req.on('error', reject);
+      req.on('timeout', () => { req.destroy(); reject(new Error('Timeout')); });
+      if (body) req.write(data);
+      req.end();
     });
-    req.on('error', reject);
-    req.on('timeout', () => { req.destroy(); reject(new Error('Timeout')); });
-    req.end();
-  });
+  }
+
+  // Fallback to fetch
+  const opts = body
+    ? { method, headers: { 'Content-Type': 'application/json', 'Connection': 'keep-alive' }, body: JSON.stringify(body), signal: AbortSignal.timeout(15000) }
+    : { method, headers: { 'Connection': 'keep-alive' }, signal: AbortSignal.timeout(8000) };
+  const r = await fetch(url, opts);
+  if (!r.ok) throw new Error(`Canton ${r.status}`);
+  return r.json();
 }
 
 async function cantonSubmit(userId, commandId, actAs, commands) {
-  return cantonPost('/v2/commands/submit-and-wait-for-transaction', {
+  return cantonFetch('/v2/commands/submit-and-wait-for-transaction', {
     commands: { userId, commandId, actAs, commands }
   });
 }
@@ -80,8 +81,8 @@ function findCreated(res, templateFragment) {
 async function loadReputations() {
   if (cachedReputations && Date.now() - cacheTime < 60000) return cachedReputations;
   try {
-    const { offset } = await cantonGet('/v2/state/ledger-end');
-    const data = await cantonPost('/v2/state/active-contracts', {
+    const { offset } = await cantonFetch('/v2/state/ledger-end', null, 'GET');
+    const data = await cantonFetch('/v2/state/active-contracts', {
       filter: { filtersByParty: {}, filtersForAnyParty: { cumulative: [{ identifierFilter: { WildcardFilter: { value: { includeCreatedEventBlob: false } } } }] } },
       verbose: true, activeAtOffset: offset
     });
@@ -138,7 +139,7 @@ async function runOnChain(txId, base, variance, reps) {
   let market = findCreated(createRes, ':PredictionMarket');
   if (!market) throw new Error('Failed to create market');
 
-  // 2. Submit votes (keep-alive connection avoids rate limit)
+  // 2. Submit votes
   for (const vote of votes) {
     const voteRes = await cantonSubmit(vote.userId, `vote-${txId}-${vote.key}`, [vote.party], [{
       ExerciseCommand: {
@@ -153,7 +154,7 @@ async function runOnChain(txId, base, variance, reps) {
     market = next;
   }
 
-  // 3. Wait for deadline then close market
+  // 3. Wait for deadline then close
   const elapsed = Date.now() - startTime;
   const waitMs = Math.max(0, (DEADLINE_SECS * 1000 + 1000) - elapsed);
   if (waitMs > 0) await delay(waitMs);
