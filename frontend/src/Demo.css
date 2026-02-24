@@ -36,6 +36,7 @@
   border-bottom: 1px solid var(--border);
   background: var(--bg-secondary);
   flex-shrink: 0;
+  position: relative;
 }
 .logo-img { width: 28px; height: 28px; border-radius: 6px; }
 .cinema-logo {
@@ -48,7 +49,7 @@
   text-decoration: none;
 }
 .cinema-logo:hover { opacity: 0.8; }
-.cinema-status { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); }
+.cinema-status { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); position: absolute; left: 50%; transform: translateX(-50%); }
 .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--danger); }
 .status-dot.connected { background: var(--success); animation: pulse 2s infinite; }
 @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
