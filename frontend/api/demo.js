@@ -1,4 +1,8 @@
-const CANTON_API = process.env.CANTON_API_URL || 'http://46.224.56.32:7575';
+import http from 'node:http';
+
+const CANTON_HOST = process.env.CANTON_HOST || '46.224.56.32';
+const CANTON_PORT = parseInt(process.env.CANTON_PORT || '7575');
+const CANTON_API = `http://${CANTON_HOST}:${CANTON_PORT}`;
 const PARTY_SUFFIX = '::122031dacd1d842e4499cf58bc1391ec402816ebc0edf2a240b0ff9322f7e7b97a3a';
 const PKG = 'aml-network';
 
@@ -13,29 +17,62 @@ const BANKS = [
   { key: 'Bank_D', userId: 'bankd', name: 'Bank D' },
 ];
 
-async function cantonFetch(path, body) {
-  const opts = body
-    ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: AbortSignal.timeout(8000) }
-    : { signal: AbortSignal.timeout(5000) };
-  const r = await fetch(`${CANTON_API}${path}`, opts);
-  return r.json();
+// Keep-alive agent to reuse TCP connections (Canton DevNet has low connection limit)
+const agent = new http.Agent({ keepAlive: true, maxSockets: 1 });
+
+function cantonPost(path, body) {
+  return new Promise((resolve, reject) => {
+    const data = JSON.stringify(body);
+    const req = http.request({
+      hostname: CANTON_HOST, port: CANTON_PORT, path, method: 'POST', agent,
+      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(data) },
+      timeout: 15000
+    }, res => {
+      let buf = '';
+      res.on('data', c => buf += c);
+      res.on('end', () => {
+        try { resolve(JSON.parse(buf)); }
+        catch { reject(new Error(`Parse error: ${buf.slice(0, 200)}`)); }
+      });
+    });
+    req.on('error', reject);
+    req.on('timeout', () => { req.destroy(); reject(new Error('Timeout')); });
+    req.write(data);
+    req.end();
+  });
 }
 
-// Submit command and return transaction with events
+function cantonGet(path) {
+  return new Promise((resolve, reject) => {
+    const req = http.request({
+      hostname: CANTON_HOST, port: CANTON_PORT, path, method: 'GET', agent, timeout: 8000
+    }, res => {
+      let buf = '';
+      res.on('data', c => buf += c);
+      res.on('end', () => {
+        try { resolve(JSON.parse(buf)); }
+        catch { reject(new Error(`Parse error`)); }
+      });
+    });
+    req.on('error', reject);
+    req.on('timeout', () => { req.destroy(); reject(new Error('Timeout')); });
+    req.end();
+  });
+}
+
 async function cantonSubmit(userId, commandId, actAs, commands) {
-  return cantonFetch('/v2/commands/submit-and-wait-for-transaction', {
+  return cantonPost('/v2/commands/submit-and-wait-for-transaction', {
     commands: { userId, commandId, actAs, commands }
   });
 }
 
-// Find a created event matching a template fragment
+const delay = ms => new Promise(r => setTimeout(r, ms));
+
 function findCreated(res, templateFragment) {
-  const events = res?.transaction?.events || [];
-  for (const evt of events) {
-    const created = evt.CreatedEvent;
-    if (created && String(created.templateId || '').includes(templateFragment)) {
-      return { contractId: created.contractId, args: created.createArgument || {} };
-    }
+  for (const evt of (res?.transaction?.events || [])) {
+    const c = evt.CreatedEvent;
+    if (c && String(c.templateId || '').includes(templateFragment))
+      return { contractId: c.contractId, args: c.createArgument || {} };
   }
   return null;
 }
@@ -43,8 +80,8 @@ function findCreated(res, templateFragment) {
 async function loadReputations() {
   if (cachedReputations && Date.now() - cacheTime < 60000) return cachedReputations;
   try {
-    const { offset } = await cantonFetch('/v2/state/ledger-end');
-    const data = await cantonFetch('/v2/state/active-contracts', {
+    const { offset } = await cantonGet('/v2/state/ledger-end');
+    const data = await cantonPost('/v2/state/active-contracts', {
       filter: { filtersByParty: {}, filtersForAnyParty: { cumulative: [{ identifierFilter: { WildcardFilter: { value: { includeCreatedEventBlob: false } } } }] } },
       verbose: true, activeAtOffset: offset
     });
@@ -74,11 +111,12 @@ function reputationToWeight(score) {
   return 0.5;
 }
 
-// Full on-chain flow: Create → Vote × 4 → CloseEarly → DetermineAction
 async function runOnChain(txId, base, variance, reps) {
   const parties = BANKS.map(b => b.key + PARTY_SUFFIX);
   const regParty = 'Regulator' + PARTY_SUFFIX;
-  const deadline = new Date(Date.now() + 600000).toISOString();
+  const DEADLINE_SECS = 25;
+  const deadline = new Date(Date.now() + DEADLINE_SECS * 1000).toISOString();
+  const startTime = Date.now();
 
   const votes = BANKS.map((b, i) => {
     const rep = reps[b.key] || { score: 50 };
@@ -97,10 +135,10 @@ async function runOnChain(txId, base, variance, reps) {
       }
     }
   }]);
-  let market = findCreated(createRes, ':PredictionMarket:');
+  let market = findCreated(createRes, ':PredictionMarket');
   if (!market) throw new Error('Failed to create market');
 
-  // 2. Submit votes sequentially
+  // 2. Submit votes (keep-alive connection avoids rate limit)
   for (const vote of votes) {
     const voteRes = await cantonSubmit(vote.userId, `vote-${txId}-${vote.key}`, [vote.party], [{
       ExerciseCommand: {
@@ -110,24 +148,28 @@ async function runOnChain(txId, base, variance, reps) {
         choiceArgument: { voter: vote.party, confidence: String(vote.confidence), stake: String(vote.weight) }
       }
     }]);
-    const next = findCreated(voteRes, ':PredictionMarket:');
+    const next = findCreated(voteRes, ':PredictionMarket');
     if (!next) throw new Error(`Vote failed for ${vote.key}`);
     market = next;
   }
 
-  // 3. Close market early (all votes in)
+  // 3. Wait for deadline then close market
+  const elapsed = Date.now() - startTime;
+  const waitMs = Math.max(0, (DEADLINE_SECS * 1000 + 1000) - elapsed);
+  if (waitMs > 0) await delay(waitMs);
+
   const closeRes = await cantonSubmit('banka', `close-${txId}`, [parties[0]], [{
     ExerciseCommand: {
       templateId: `#${PKG}:PredictionMarket:PredictionMarket`,
       contractId: market.contractId,
-      choice: 'CloseMarketEarly',
+      choice: 'CloseMarket',
       choiceArgument: {}
     }
   }]);
-  const riskScoreContract = findCreated(closeRes, ':RiskScore:');
-  if (!riskScoreContract) throw new Error('CloseMarketEarly failed');
+  const riskScoreContract = findCreated(closeRes, ':RiskScore');
+  if (!riskScoreContract) throw new Error('CloseMarket failed');
 
-  // 4. Determine action (auto-files SAR if score >= 0.8)
+  // 4. Determine action
   const actionRes = await cantonSubmit('banka', `action-${txId}`, [parties[0]], [{
     ExerciseCommand: {
       templateId: `#${PKG}:PredictionMarket:RiskScore`,
@@ -136,8 +178,7 @@ async function runOnChain(txId, base, variance, reps) {
       choiceArgument: {}
     }
   }]);
-  const sar = findCreated(actionRes, ':SARReport:');
-
+  const sar = findCreated(actionRes, ':SARReport');
   const onChainScore = parseFloat(riskScoreContract.args.score) || 0;
 
   return {
@@ -154,7 +195,6 @@ async function runOnChain(txId, base, variance, reps) {
   };
 }
 
-// Fallback: compute locally
 function runFallback(txId, base, variance, reps) {
   const votes = BANKS.map(b => {
     const rep = reps[b.key] || { score: 50 };
@@ -169,6 +209,8 @@ function runFallback(txId, base, variance, reps) {
 }
 
 export function getMarketCount() { return marketCount; }
+
+export const config = { maxDuration: 60 };
 
 export default async function handler(req, res) {
   if (req.method === 'GET') return res.json({ marketCount });
