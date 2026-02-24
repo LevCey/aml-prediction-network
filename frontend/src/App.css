@@ -853,7 +853,7 @@ body {
 .participants-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 24px; }
 .participant-card { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 16px; display: flex; align-items: center; gap: 14px; transition: transform 0.2s, box-shadow 0.2s; }
 .participant-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
-.participant-card.regulator { border-color: #f59e0b; background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%); }
+.participant-card.regulator { border-color: #f59e0b; background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, #1e293b 100%); }
 .participant-icon { font-size: 28px; }
 .participant-info { display: flex; flex-direction: column; }
 .participant-name { font-weight: 600; color: #f1f5f9; font-size: 15px; }
