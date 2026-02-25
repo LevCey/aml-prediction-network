@@ -852,6 +852,36 @@ body {
   font-size: 0.82em;
 }
 
+.contract-id-wrap {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.contract-id-full {
+  font-size: 0.7em;
+  word-break: break-all;
+  color: #7c3aed;
+  background: #f3f0ff;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.ledger-offset {
+  font-size: 0.75em;
+  color: #6b7280;
+  background: #f3f4f6;
+  padding: 1px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.canton-privacy {
+  margin-top: 20px;
+  border-left: 3px solid #7c3aed;
+}
+
 .refresh-btn { background: none; border: 1px solid #334155; color: #a0aec0; border-radius: 6px; padding: 2px 8px; font-size: 16px; cursor: pointer; transition: all 0.2s; }
 .refresh-btn:hover { background: rgba(59,130,246,0.2); color: #60a5fa; border-color: #3b82f6; }
 

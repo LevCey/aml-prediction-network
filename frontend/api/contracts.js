@@ -45,7 +45,7 @@ function transformContract(item) {
   const ce = item.contractEntry[key].createdEvent || {};
   const template = getTemplateName(ce.templateId);
   const args = ce.createArgument || {};
-  const base = { contractId: (ce.contractId || '').slice(0, 16), template, createdAt: ce.createdAt || null };
+  const base = { contractId: (ce.contractId || '').slice(0, 16), fullContractId: ce.contractId || '', template, createdAt: ce.createdAt || null, ledgerOffset: ce.offset || null };
 
   switch (template) {
     case 'BankReputation':

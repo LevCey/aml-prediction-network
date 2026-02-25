@@ -13,8 +13,10 @@ interface Vote {
 
 interface Contract {
   contractId: string;
+  fullContractId?: string;
   template: string;
   createdAt?: string;
+  ledgerOffset?: number;
   transactionId?: string;
   isOpen?: boolean;
   creator?: string;
@@ -53,6 +55,20 @@ function formatTime(iso?: string): string {
   if (!iso) return '';
   const d = new Date(iso);
   return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+}
+
+function ContractId({ contract }: { contract: Contract }) {
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <span className="contract-id-wrap" onClick={() => setExpanded(!expanded)} title="Click to show full on-chain contract ID">
+      {expanded ? (
+        <code className="contract-id-full">{contract.fullContractId}</code>
+      ) : (
+        <span className="contract-id">{contract.transactionId || contract.contractId}</span>
+      )}
+      {contract.ledgerOffset && <span className="ledger-offset">offset #{contract.ledgerOffset}</span>}
+    </span>
+  );
 }
 
 function byTemplate(contracts: Contract[], template: string): Contract[] {
@@ -223,7 +239,7 @@ function DashboardView({ devnet, loading }: { devnet: DevnetState; loading: bool
           return (
             <div key={i} className="contract-card">
               <div className="contract-header">
-                <span className="contract-id">{c.transactionId || c.contractId}</span>
+                <ContractId contract={c} />
                 <span className={`contract-status ${c.isOpen ? 'open' : 'closed'}`}>
                   {c.template === 'PredictionMarket' ? '● ACTIVE' : '● RESOLVED'}
                 </span>
@@ -246,11 +262,15 @@ function DashboardView({ devnet, loading }: { devnet: DevnetState; loading: bool
           </div>
         )}
       </div>
+
+      <div className="privacy-note canton-privacy">
+        <strong>🔒 Privacy by Design:</strong> Canton transactions are only visible to authorized parties.
+        There is no public block explorer — this is a feature, not a limitation.
+        Click any transaction ID to reveal its full on-chain contract identifier.
+      </div>
     </div>
   );
 }
-
-// --- Prediction Market View ---
 
 function PredictionMarketView({ devnet }: { devnet: DevnetState }) {
   const riskScores = byTemplate(devnet.contracts, 'RiskScore');
@@ -324,7 +344,7 @@ function PredictionMarketView({ devnet }: { devnet: DevnetState }) {
           return (
             <div key={i} className="market-card resolved">
               <div className="market-header">
-                <div className="market-title"><span className="market-tx">{m.transactionId}</span></div>
+                <div className="market-title"><ContractId contract={m} /></div>
                 <span className="market-status resolved">● RESOLVED</span>
               </div>
               <div className="market-footer">
