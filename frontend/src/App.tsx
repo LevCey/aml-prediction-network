@@ -3,14 +3,23 @@ import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import './App.css';
 import Demo from './Demo';
 
+interface Vote {
+  voter: string;
+  confidence: number;
+  weight: number;
+}
+
 interface Contract {
   contractId: string;
-  transactionId: string;
-  marketId: string;
-  creator: string;
-  isOpen: boolean;
-  votes: number;
-  createdAt: string;
+  template: string;
+  transactionId?: string;
+  isOpen?: boolean;
+  creator?: string;
+  votes?: Vote[];
+  riskScore?: number;
+  bank?: string;
+  reputationScore?: number;
+  accuracy?: number;
 }
 
 interface Party {
@@ -106,15 +115,20 @@ function MainDashboard() {
 }
 
 function DashboardView({ devnet, loading }: { devnet: DevnetStats; loading: boolean }) {
-  // Sample data for showcase - real devnet is connected but show examples
-  const sampleContracts = [
-    { transactionId: 'TX-89234521', creator: 'Bank A', votes: 5, isOpen: false, riskScore: 87.2, action: 'BLOCKED' },
-    { transactionId: 'TX-67891234', creator: 'Bank B', votes: 5, isOpen: false, riskScore: 72.4, action: 'REVIEW' },
-    { transactionId: 'TX-45678901', creator: 'Bank C', votes: 5, isOpen: true, riskScore: 34.1, action: 'APPROVED' },
+  const riskScores = devnet.contracts.filter(c => c.template === 'RiskScore');
+  const openMarkets = devnet.contracts.filter(c => c.template === 'PredictionMarket' && c.isOpen);
+  const sarReports = devnet.contracts.filter(c => c.template === 'SARReport');
+  const reputations = devnet.contracts.filter(c => c.template === 'BankReputation');
+
+  const parties = devnet.parties.length > 0 ? devnet.parties : [
+    { name: 'Regulator', partyId: '', isRegulator: true },
+    { name: 'Bank A', partyId: '', isRegulator: false },
+    { name: 'Bank B', partyId: '', isRegulator: false },
+    { name: 'Bank C', partyId: '', isRegulator: false },
+    { name: 'Bank D', partyId: '', isRegulator: false },
   ];
 
-  const displayContracts = sampleContracts;
-  const totalCount = devnet.totalContracts > 0 ? devnet.totalContracts : 47;
+  const assessments = [...riskScores, ...openMarkets];
 
   return (
     <div className="dashboard">
@@ -122,84 +136,99 @@ function DashboardView({ devnet, loading }: { devnet: DevnetStats; loading: bool
 
       <div className="stats-grid">
         <div className="stat-card highlight">
-          <div className="stat-value">{totalCount.toLocaleString()}</div>
-          <div className="stat-label">TOTAL ASSESSMENTS</div>
+          <div className="stat-value">{devnet.totalContracts}</div>
+          <div className="stat-label">ACTIVE CONTRACTS</div>
         </div>
         <div className="stat-card">
-          <div className="stat-value">{devnet.parties.filter(p => !p.isRegulator).length || 4}</div>
+          <div className="stat-value">{parties.filter(p => !p.isRegulator).length}</div>
           <div className="stat-label">INSTITUTIONS</div>
         </div>
         <div className="stat-card">
-          <div className="stat-value">{devnet.parties.filter(p => p.isRegulator).length || 1}</div>
-          <div className="stat-label">REGULATORS</div>
+          <div className="stat-value">{sarReports.length}</div>
+          <div className="stat-label">SAR REPORTS</div>
         </div>
         <div className="stat-card success">
-          <div className="stat-value">✓</div>
-          <div className="stat-label">DEVNET LIVE</div>
+          <div className="stat-value">{devnet.connected ? '✓' : '✗'}</div>
+          <div className="stat-label">DEVNET {devnet.connected ? 'LIVE' : 'OFFLINE'}</div>
         </div>
       </div>
 
       <h3>Network Participants</h3>
-      <div className="participants-grid">
-        {[
-          { name: 'Regulator', isRegulator: true },
-          { name: 'Bank A', isRegulator: false },
-          { name: 'Bank B', isRegulator: false },
-          { name: 'Bank C', isRegulator: false },
-          { name: 'Bank D', isRegulator: false },
-        ].map((party, i) => (
-          <div key={i} className={`participant-card ${party.isRegulator ? 'regulator' : ''}`}>
-            <span className="participant-icon">{party.isRegulator ? '🏛️' : '🏦'}</span>
-            <div className="participant-info">
-              <span className="participant-name">{party.name}</span>
-              <span className="participant-type">{party.isRegulator ? 'Regulator' : 'Bank'}</span>
+      {reputations.length > 0 ? (
+        <div className="participants-grid">
+          {parties.map((party, i) => {
+            const rep = reputations.find(r => r.bank === party.name);
+            return (
+              <div key={i} className={`participant-card ${party.isRegulator ? 'regulator' : ''}`}>
+                <span className="participant-icon">{party.isRegulator ? '🏛️' : '🏦'}</span>
+                <div className="participant-info">
+                  <span className="participant-name">{party.name}</span>
+                  <span className="participant-type">
+                    {party.isRegulator ? 'Regulator' : rep ? `Score: ${rep.reputationScore} | Acc: ${Math.round((rep.accuracy || 0) * 100)}%` : 'Bank'}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="participants-grid">
+          {parties.map((party, i) => (
+            <div key={i} className={`participant-card ${party.isRegulator ? 'regulator' : ''}`}>
+              <span className="participant-icon">{party.isRegulator ? '🏛️' : '🏦'}</span>
+              <div className="participant-info">
+                <span className="participant-name">{party.name}</span>
+                <span className="participant-type">{party.isRegulator ? 'Regulator' : 'Bank'}</span>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
-      <h3>Recent Risk Assessments</h3>
+      <h3>Recent Risk Assessments {loading && '(loading...)'}</h3>
       <div className="contracts-list">
-        {displayContracts.slice(0, 5).map((c: any, i: number) => (
-          <div key={i} className="contract-card">
-            <div className="contract-header">
-              <span className="contract-id">{c.transactionId}</span>
-              <span className={`contract-status ${c.isOpen ? 'open' : 'closed'}`}>
-                {c.isOpen ? '● ACTIVE' : '● RESOLVED'}
-              </span>
+        {assessments.length > 0 ? assessments.slice(0, 10).map((c, i) => {
+          const score = c.riskScore ?? 0;
+          const action = score >= 80 ? 'BLOCKED' : score >= 60 ? 'REVIEW' : 'APPROVED';
+          return (
+            <div key={i} className="contract-card">
+              <div className="contract-header">
+                <span className="contract-id">{c.transactionId || c.contractId}</span>
+                <span className={`contract-status ${c.isOpen ? 'open' : 'closed'}`}>
+                  {c.template === 'PredictionMarket' ? '● ACTIVE' : '● RESOLVED'}
+                </span>
+              </div>
+              <div className="contract-details">
+                <span><strong>Type:</strong> {c.template}</span>
+                {c.creator && <span><strong>Creator:</strong> {c.creator}</span>}
+                {c.votes && <span><strong>Votes:</strong> {c.votes.length}</span>}
+                {c.riskScore != null && <span><strong>Risk:</strong> {c.riskScore}%</span>}
+                {c.template === 'RiskScore' && <span className={`action-badge ${action.toLowerCase()}`}>{action}</span>}
+              </div>
             </div>
+          );
+        }) : (
+          <div className="contract-card">
             <div className="contract-details">
-              <span><strong>Creator:</strong> {c.creator}</span>
-              <span><strong>Votes:</strong> {c.votes}/5</span>
-              {c.riskScore && <span><strong>Risk:</strong> {c.riskScore}%</span>}
-              {c.action && <span className={`action-badge ${c.action.toLowerCase()}`}>{c.action}</span>}
+              <span>{devnet.connected ? 'No active risk assessments on DevNet' : 'DevNet bağlantısı kurulamadı'}</span>
             </div>
           </div>
-        ))}
+        )}
       </div>
     </div>
   );
 }
 
 function PredictionMarketView({ devnet }: { devnet: DevnetStats }) {
-  const sampleMarkets = [
-    { id: 'MKT-001', tx: 'TX-89234521', amount: '$25,000', dest: 'Crypto Exchange', riskScore: 87.2, status: 'RESOLVED', action: 'BLOCKED', votes: [
-      { bank: 'Bank A', confidence: 89, weight: 1.8 },
-      { bank: 'Bank B', confidence: 85, weight: 1.5 },
-      { bank: 'Bank C', confidence: 88, weight: 1.2 },
-      { bank: 'Bank D', confidence: 84, weight: 2.0 },
-    ]},
-    { id: 'MKT-002', tx: 'TX-67891234', amount: '$12,500', dest: 'Offshore Investment LLC', riskScore: 72.4, status: 'RESOLVED', action: 'REVIEW', votes: [
-      { bank: 'Bank A', confidence: 71, weight: 1.8 },
-      { bank: 'Bank B', confidence: 74, weight: 1.5 },
-      { bank: 'Bank C', confidence: 69, weight: 1.2 },
-      { bank: 'Bank D', confidence: 76, weight: 2.0 },
-    ]},
-    { id: 'MKT-003', tx: 'TX-45678901', amount: '$8,200', dest: 'Verified Merchant', riskScore: 34.1, status: 'ACTIVE', action: null, votes: [
-      { bank: 'Bank A', confidence: 32, weight: 1.8 },
-      { bank: 'Bank B', confidence: 38, weight: 1.5 },
-    ]},
-  ];
+  const riskScores = devnet.contracts.filter(c => c.template === 'RiskScore');
+  const openMarkets = devnet.contracts.filter(c => c.template === 'PredictionMarket');
+  const reputations = devnet.contracts.filter(c => c.template === 'BankReputation');
+
+  const resolvedCount = riskScores.length;
+  const blockedCount = riskScores.filter(c => (c.riskScore ?? 0) >= 80).length;
+  const avgAccuracy = reputations.length > 0
+    ? Math.round(reputations.reduce((s, r) => s + (r.accuracy || 0), 0) / reputations.length * 100)
+    : 0;
 
   return (
     <div className="prediction-market">
@@ -211,43 +240,74 @@ function PredictionMarketView({ devnet }: { devnet: DevnetStats }) {
       </div>
 
       <div className="market-stats">
-        <div className="market-stat"><span className="stat-num">47</span><span className="stat-lbl">Total Markets</span></div>
-        <div className="market-stat"><span className="stat-num">12</span><span className="stat-lbl">Blocked</span></div>
-        <div className="market-stat"><span className="stat-num">89%</span><span className="stat-lbl">Accuracy</span></div>
-        <div className="market-stat"><span className="stat-num">-30%</span><span className="stat-lbl">False Positives</span></div>
+        <div className="market-stat"><span className="stat-num">{resolvedCount + openMarkets.length}</span><span className="stat-lbl">Total Markets</span></div>
+        <div className="market-stat"><span className="stat-num">{blockedCount}</span><span className="stat-lbl">Blocked</span></div>
+        <div className="market-stat"><span className="stat-num">{avgAccuracy > 0 ? `${avgAccuracy}%` : '—'}</span><span className="stat-lbl">Avg Accuracy</span></div>
+        <div className="market-stat"><span className="stat-num">{openMarkets.length}</span><span className="stat-lbl">Active</span></div>
       </div>
 
-      <h3>Recent Assessments</h3>
+      <h3>Active Markets</h3>
       <div className="markets-list">
-        {sampleMarkets.map((m, i) => (
-          <div key={i} className={`market-card ${m.status.toLowerCase()}`}>
+        {openMarkets.length > 0 ? openMarkets.map((m, i) => (
+          <div key={i} className="market-card active">
             <div className="market-header">
               <div className="market-title">
-                <span className="market-tx">{m.tx}</span>
-                <span className="market-amount">{m.amount} → {m.dest}</span>
+                <span className="market-tx">{m.transactionId}</span>
+                <span className="market-amount">Creator: {m.creator}</span>
               </div>
-              <span className={`market-status ${m.status.toLowerCase()}`}>● {m.status}</span>
+              <span className="market-status active">● ACTIVE</span>
             </div>
-            <div className="market-votes">
-              {m.votes.map((v, j) => (
-                <div key={j} className="vote-item">
-                  <span className="vote-bank">🏦 {v.bank}</span>
-                  <div className="vote-bar-wrap">
-                    <div className="vote-bar-bg">
-                      <div className="vote-bar-fill" style={{ width: `${v.confidence}%`, background: v.confidence > 70 ? '#ef4444' : v.confidence > 50 ? '#f59e0b' : '#22c55e' }}></div>
+            {m.votes && m.votes.length > 0 && (
+              <div className="market-votes">
+                {m.votes.map((v, j) => (
+                  <div key={j} className="vote-item">
+                    <span className="vote-bank">🏦 {v.voter}</span>
+                    <div className="vote-bar-wrap">
+                      <div className="vote-bar-bg">
+                        <div className="vote-bar-fill" style={{ width: `${v.confidence}%`, background: v.confidence > 70 ? '#ef4444' : v.confidence > 50 ? '#f59e0b' : '#22c55e' }}></div>
+                      </div>
+                      <span className="vote-pct">{v.confidence}%</span>
                     </div>
-                    <span className="vote-pct">{v.confidence}%</span>
+                    <span className="vote-weight">w: {v.weight}</span>
                   </div>
-                  <span className="vote-weight">w: {v.weight}</span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
             <div className="market-footer">
-              <span className="risk-score">Risk Score: <strong>{m.riskScore}%</strong></span>
-              {m.action && <span className={`action-badge ${m.action.toLowerCase()}`}>{m.action}</span>}
+              <span className="risk-score">Votes: <strong>{m.votes?.length || 0}</strong></span>
             </div>
           </div>
-        ))}
+        )) : (
+          <div className="contract-card">
+            <div className="contract-details"><span>No active markets — all markets resolved</span></div>
+          </div>
+        )}
+      </div>
+
+      <h3>Resolved Assessments</h3>
+      <div className="markets-list">
+        {riskScores.length > 0 ? riskScores.map((m, i) => {
+          const score = m.riskScore ?? 0;
+          const action = score >= 80 ? 'BLOCKED' : score >= 60 ? 'REVIEW' : 'APPROVED';
+          return (
+            <div key={i} className={`market-card resolved`}>
+              <div className="market-header">
+                <div className="market-title">
+                  <span className="market-tx">{m.transactionId}</span>
+                </div>
+                <span className="market-status resolved">● RESOLVED</span>
+              </div>
+              <div className="market-footer">
+                <span className="risk-score">Risk Score: <strong>{score}%</strong></span>
+                <span className={`action-badge ${action.toLowerCase()}`}>{action}</span>
+              </div>
+            </div>
+          );
+        }) : (
+          <div className="contract-card">
+            <div className="contract-details"><span>{devnet.connected ? 'No resolved assessments yet' : 'DevNet bağlantısı kurulamadı'}</span></div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -344,20 +404,20 @@ function RegulatorView({ devnet }: { devnet: DevnetStats }) {
 
       <div className="regulator-stats">
         <div className="stat-card">
-          <div className="stat-value">47</div>
-          <div className="stat-label">TOTAL MARKETS</div>
+          <div className="stat-value">{devnet.totalContracts}</div>
+          <div className="stat-label">ACTIVE CONTRACTS</div>
         </div>
         <div className="stat-card">
-          <div className="stat-value">4</div>
+          <div className="stat-value">{devnet.parties.filter(p => !p.isRegulator).length || 0}</div>
           <div className="stat-label">INSTITUTIONS ACTIVE</div>
         </div>
         <div className="stat-card success">
-          <div className="stat-value">✓</div>
-          <div className="stat-label">DEVNET LIVE</div>
+          <div className="stat-value">{devnet.connected ? '✓' : '✗'}</div>
+          <div className="stat-label">DEVNET {devnet.connected ? 'LIVE' : 'OFFLINE'}</div>
         </div>
         <div className="stat-card highlight">
-          <div className="stat-value">100%</div>
-          <div className="stat-label">COMPLIANCE</div>
+          <div className="stat-value">{devnet.contracts.filter(c => c.template === 'SARReport').length}</div>
+          <div className="stat-label">SAR REPORTS</div>
         </div>
       </div>
 

@@ -25,11 +25,17 @@ async function getActiveContracts(offset) {
   return r.json();
 }
 
+function parseName(partyId) {
+  return (partyId || '').split('::')[0].replace(/_/g, ' ');
+}
+
 export default async function handler(req, res) {
   try {
     const offset = await getOffset();
     const data = await getActiveContracts(offset);
     const entries = Array.isArray(data) ? data : [];
+
+    const TEMPLATES = [':BankReputation:', ':PredictionMarket:', ':RiskScore:', ':SARReport:'];
 
     const contracts = entries
       .map(item => {
@@ -38,25 +44,33 @@ export default async function handler(req, res) {
         const ce = item.contractEntry[key].createdEvent || {};
         return { templateId: ce.templateId || '', contractId: ce.contractId || '', args: ce.createArgument || {} };
       })
-      .filter(c => c && c.templateId.includes(':BankReputation:') || c.templateId.includes(':PredictionMarket:'))
+      .filter(c => c && TEMPLATES.some(t => c.templateId.includes(t)))
       .map(c => {
-        const mod = c.templateId.split(':')[1];
-        return {
-          contractId: c.contractId.slice(0, 16),
-          template: mod,
-          ...(mod === 'BankReputation' ? {
-            bank: (c.args.bank || '').split('::')[0].replace(/_/g, ' '),
-            reputationScore: parseFloat(c.args.reputationScore) || 0,
-            accuracy: parseFloat(c.args.accuracy) || 0
-          } : {
-            transactionId: c.args.transactionId,
-            isOpen: c.args.isOpen
-          })
-        };
+        const template = c.templateId.split(':')[1] || '';
+        const base = { contractId: c.contractId.slice(0, 16), template };
+
+        if (template === 'BankReputation') {
+          return { ...base, bank: parseName(c.args.bank), reputationScore: parseFloat(c.args.reputationScore) || 0, accuracy: parseFloat(c.args.accuracy) || 0 };
+        }
+        if (template === 'PredictionMarket') {
+          const votes = (c.args.votes || []).map(v => ({
+            voter: parseName(v.voter),
+            confidence: Math.round(parseFloat(v.confidence || 0) * 1000) / 10,
+            weight: parseFloat(v.stake || v.weight || 1)
+          }));
+          return { ...base, transactionId: c.args.transactionId, isOpen: c.args.isOpen, creator: parseName(c.args.creator), votes };
+        }
+        if (template === 'RiskScore') {
+          return { ...base, transactionId: c.args.transactionId, riskScore: Math.round(parseFloat(c.args.score || 0) * 1000) / 10 };
+        }
+        if (template === 'SARReport') {
+          return { ...base, transactionId: c.args.transactionId };
+        }
+        return base;
       });
 
     res.json({ success: true, mode: 'canton-devnet', totalContracts: entries.length, contracts });
   } catch (err) {
-    res.json({ success: false, error: err.message, totalContracts: 0 });
+    res.json({ success: false, error: err.message, totalContracts: 0, contracts: [] });
   }
 }
