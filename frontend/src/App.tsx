@@ -266,9 +266,9 @@ function DashboardView({ devnet, loading }: { devnet: DevnetState; loading: bool
       </div>
 
       <div className="privacy-note canton-privacy">
-        <strong>🔒 Privacy by Design:</strong> Canton transactions are visible only to authorized participants.
-        There is no public, permissionless block explorer — access is restricted by design.
-        Click any transaction ID to reveal its full on-chain identifier.
+        <strong>🔒 Privacy by Design:</strong> Transactions on Canton are visible only to authorized participants.
+        There is no public, permissionless block explorer. Access is governed by participant entitlements.
+        Click a transaction ID to view its on-chain contract reference.
       </div>
     </div>
   );
