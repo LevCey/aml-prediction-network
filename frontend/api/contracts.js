@@ -65,10 +65,20 @@ function transformContract(item) {
   }
 }
 
+// In-memory cache for warm function instances
+let cache = null;
+let cacheTime = 0;
+const CACHE_TTL = 25000; // 25s — frontend refreshes every 30s
+
 export const config = { maxDuration: 30 };
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+
+  // Serve from cache if fresh
+  if (cache && Date.now() - cacheTime < CACHE_TTL) {
+    return res.json(cache);
+  }
 
   try {
     const offsetRes = await fetch(`${CANTON_API}/v2/state/ledger-end`, { signal: AbortSignal.timeout(TIMEOUT_OFFSET) });
@@ -97,8 +107,15 @@ export default async function handler(req, res) {
     const data = Array.isArray(entries) ? entries : [];
     const contracts = data.map(transformContract).filter(Boolean);
 
-    res.json({ success: true, mode: 'canton-devnet', totalContracts: data.length, contracts, offset });
+    const result = { success: true, mode: 'canton-devnet', totalContracts: data.length, contracts, offset };
+    cache = result;
+    cacheTime = Date.now();
+
+    res.setHeader('Cache-Control', 's-maxage=25, stale-while-revalidate=60');
+    res.json(result);
   } catch (err) {
+    // Serve stale cache on error rather than showing empty dashboard
+    if (cache) return res.json(cache);
     res.status(502).json({ success: false, error: err.message, totalContracts: 0, contracts: [] });
   }
 }
