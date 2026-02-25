@@ -1,5 +1,5 @@
-const CANTON_API = process.env.CANTON_API_URL || 'http://46.224.56.32:7575';
-const PARTY_SUFFIX = '::122031dacd1d842e4499cf58bc1391ec402816ebc0edf2a240b0ff9322f7e7b97a3a';
+const CANTON_API = process.env.CANTON_API_URL;
+const PARTY_SUFFIX = process.env.CANTON_PARTY_SUFFIX || '';
 const PKG = 'aml-network';
 
 const BANKS = [

@@ -1,4 +1,4 @@
-const CANTON_API = process.env.CANTON_API_URL || 'http://46.224.56.32:7575';
+const CANTON_API = process.env.CANTON_API_URL;
 const AML_USERS = ['banka', 'bankb', 'bankc', 'bankd', 'regulator'];
 
 export default async function handler(req, res) {
