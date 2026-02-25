@@ -225,7 +225,7 @@ function DashboardView({ devnet, loading }: { devnet: DevnetState; loading: bool
               <div className="participant-info">
                 <span className="participant-name">{party.name}</span>
                 <span className="participant-type">
-                  {party.isRegulator ? 'Regulator' : rep ? `Score: ${rep.reputationScore} | Acc: ${Math.round((rep.accuracy || 0) * 100)}%` : 'Bank'}
+                  {party.isRegulator ? 'Regulator' : rep ? `Score ${rep.reputationScore}% · Accuracy ${Math.round((rep.accuracy || 0) * 100)}%` : 'Bank'}
                 </span>
               </div>
             </div>
