@@ -1,7 +1,7 @@
 const CANTON_API = process.env.CANTON_API_URL || 'http://46.224.56.32:7575';
 
 async function getOffset() {
-  const r = await fetch(`${CANTON_API}/v2/state/ledger-end`, { signal: AbortSignal.timeout(5000) });
+  const r = await fetch(`${CANTON_API}/v2/state/ledger-end`, { signal: AbortSignal.timeout(8000) });
   const d = await r.json();
   return d.offset;
 }
@@ -20,7 +20,7 @@ async function getActiveContracts(offset) {
       verbose: true,
       activeAtOffset: offset
     }),
-    signal: AbortSignal.timeout(10000)
+    signal: AbortSignal.timeout(25000)
   });
   return r.json();
 }
@@ -48,6 +48,8 @@ function getTemplateName(templateId) {
   const parts = (templateId || '').split(':');
   return parts[2] || parts[1] || '';
 }
+
+export const config = { maxDuration: 30 };
 
 export default async function handler(req, res) {
   try {
