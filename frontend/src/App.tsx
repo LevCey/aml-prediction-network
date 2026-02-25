@@ -180,7 +180,9 @@ function DashboardView({ devnet, loading }: { devnet: DevnetState; loading: bool
   const openMarkets = byTemplate(devnet.contracts, 'PredictionMarket');
   const sarReports = byTemplate(devnet.contracts, 'SARReport');
   const reputations = byTemplate(devnet.contracts, 'BankReputation');
-  const assessments = [...riskScores, ...openMarkets];
+  const assessments = [...riskScores, ...openMarkets].sort((a, b) => 
+    (b.createdAt || '').localeCompare(a.createdAt || '')
+  );
 
   const parties = devnet.parties.length > 0 ? devnet.parties : [
     { name: 'Regulator', partyId: '', isRegulator: true },
@@ -338,7 +340,7 @@ function PredictionMarketView({ devnet }: { devnet: DevnetState }) {
 
       <h3>Resolved Assessments</h3>
       <div className="markets-list">
-        {riskScores.length > 0 ? riskScores.map((m, i) => {
+        {riskScores.length > 0 ? [...riskScores].sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || '')).map((m, i) => {
           const score = m.riskScore ?? 0;
           const action = riskAction(score);
           return (
