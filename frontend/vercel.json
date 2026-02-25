@@ -1,0 +1,6 @@
+{
+  "functions": {
+    "api/contracts.js": { "maxDuration": 30 },
+    "api/demo.js": { "maxDuration": 60 }
+  }
+}
