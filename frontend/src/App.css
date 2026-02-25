@@ -842,6 +842,9 @@ body {
 .status-dot.connected { background: #22c55e; animation: pulse 2s infinite; box-shadow: 0 0 8px #22c55e; }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 .contract-count { background: rgba(59,130,246,0.2); color: #60a5fa; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+.last-updated { font-size: 11px; color: #64748b; }
+.refresh-btn { background: none; border: 1px solid #334155; color: #a0aec0; border-radius: 6px; padding: 2px 8px; font-size: 16px; cursor: pointer; transition: all 0.2s; }
+.refresh-btn:hover { background: rgba(59,130,246,0.2); color: #60a5fa; border-color: #3b82f6; }
 
 /* Stats cards */
 .stat-card.highlight { border-color: #3b82f6; background: rgba(59, 130, 246, 0.1); }

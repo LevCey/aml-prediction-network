@@ -20,6 +20,9 @@ interface Contract {
   bank?: string;
   reputationScore?: number;
   accuracy?: number;
+  actionTaken?: string | null;
+  sarFiled?: boolean;
+  status?: string;
 }
 
 interface Party {
@@ -50,27 +53,32 @@ function MainDashboard() {
   const [selectedTab, setSelectedTab] = useState<'dashboard' | 'market' | 'patterns' | 'regulator'>('dashboard');
   const [devnet, setDevnet] = useState<DevnetStats>({ connected: false, totalContracts: 0, contracts: [], parties: [] });
   const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  const fetchData = async () => {
+    try {
+      const [healthRes, contractsRes, partiesRes] = await Promise.all([
+        fetch('/api/health').then(r => r.json()),
+        fetch('/api/contracts').then(r => r.json()),
+        fetch('/api/parties').then(r => r.json())
+      ]);
+      setDevnet({
+        connected: healthRes.status === 'ok',
+        totalContracts: contractsRes.totalContracts || 0,
+        contracts: contractsRes.contracts || [],
+        parties: partiesRes.parties || []
+      });
+      setLastUpdated(new Date());
+    } catch (e) {
+      setDevnet({ connected: false, totalContracts: 0, contracts: [], parties: [] });
+    }
+    setLoading(false);
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [healthRes, contractsRes, partiesRes] = await Promise.all([
-          fetch('/api/health').then(r => r.json()),
-          fetch('/api/contracts').then(r => r.json()),
-          fetch('/api/parties').then(r => r.json())
-        ]);
-        setDevnet({
-          connected: healthRes.status === 'ok',
-          totalContracts: contractsRes.totalContracts || 0,
-          contracts: contractsRes.contracts || [],
-          parties: partiesRes.parties || []
-        });
-      } catch (e) {
-        setDevnet({ connected: false, totalContracts: 0, contracts: [], parties: [] });
-      }
-      setLoading(false);
-    };
     fetchData();
+    const interval = setInterval(fetchData, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -88,6 +96,8 @@ function MainDashboard() {
             <span className={`status-dot ${devnet.connected ? 'connected' : ''}`}></span>
             <span>Canton DevNet</span>
             {devnet.connected && <span className="contract-count">{devnet.totalContracts} contracts</span>}
+            {lastUpdated && <span className="last-updated">{lastUpdated.toLocaleTimeString()}</span>}
+            <button className="refresh-btn" onClick={fetchData} title="Refresh">↻</button>
           </div>
           <Link to="/demo" className="live-demo-btn">⚡ Live Demo</Link>
         </div>
@@ -385,7 +395,7 @@ function PatternsView() {
 export default App;
 
 function RegulatorView({ devnet }: { devnet: DevnetStats }) {
-  const [showVerification, setShowVerification] = useState(false);
+  const [showVerification, setShowVerification] = useState(true);
 
   const sampleActivity = [
     { time: '10:35:01', action: 'SAR_FILED', bank: 'Bank A', tx: 'TX-89234521', detail: 'Auto-filed SAR, risk score 87.2%' },
