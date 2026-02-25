@@ -14,6 +14,7 @@ interface Vote {
 interface Contract {
   contractId: string;
   template: string;
+  createdAt?: string;
   transactionId?: string;
   isOpen?: boolean;
   creator?: string;
@@ -46,6 +47,12 @@ function riskAction(score: number): string {
   if (score >= 80) return 'BLOCKED';
   if (score >= 60) return 'REVIEW';
   return 'APPROVED';
+}
+
+function formatTime(iso?: string): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 }
 
 function byTemplate(contracts: Contract[], template: string): Contract[] {
@@ -223,6 +230,7 @@ function DashboardView({ devnet, loading }: { devnet: DevnetState; loading: bool
               </div>
               <div className="contract-details">
                 <span><strong>Type:</strong> {c.template}</span>
+                {c.createdAt && <span className="contract-time">{formatTime(c.createdAt)}</span>}
                 {c.creator && <span><strong>Creator:</strong> {c.creator}</span>}
                 {c.votes && <span><strong>Votes:</strong> {c.votes.length}</span>}
                 {c.riskScore != null && <span><strong>Risk:</strong> {c.riskScore}%</span>}
@@ -322,6 +330,7 @@ function PredictionMarketView({ devnet }: { devnet: DevnetState }) {
               <div className="market-footer">
                 <span className="risk-score">Risk Score: <strong>{score}%</strong></span>
                 <span className={`action-badge ${action.toLowerCase()}`}>{action}</span>
+                {m.createdAt && <span className="contract-time">{formatTime(m.createdAt)}</span>}
               </div>
             </div>
           );

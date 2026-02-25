@@ -847,6 +847,11 @@ body {
   cursor: pointer;
 }
 
+.contract-time {
+  color: #888;
+  font-size: 0.82em;
+}
+
 .refresh-btn { background: none; border: 1px solid #334155; color: #a0aec0; border-radius: 6px; padding: 2px 8px; font-size: 16px; cursor: pointer; transition: all 0.2s; }
 .refresh-btn:hover { background: rgba(59,130,246,0.2); color: #60a5fa; border-color: #3b82f6; }
 
