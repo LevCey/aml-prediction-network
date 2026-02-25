@@ -839,8 +839,8 @@ body {
 .header-right { display: flex; align-items: center; gap: 16px; }
 .devnet-status { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #a0aec0; }
 .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #ef4444; }
-.status-dot.connected { background: #22c55e; animation: pulse 2s infinite; box-shadow: 0 0 8px #22c55e; }
-@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+.status-dot.connected { background: #22c55e; animation: pulse-glow 2s infinite; box-shadow: 0 0 8px #22c55e; }
+@keyframes pulse-glow { 0%, 100% { opacity: 1; box-shadow: 0 0 8px #22c55e; } 50% { opacity: 0.7; box-shadow: 0 0 16px #22c55e; } }
 .contract-count { background: rgba(59,130,246,0.2); color: #60a5fa; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
 .last-updated { font-size: 11px; color: #64748b; }
 .clickable-header {
