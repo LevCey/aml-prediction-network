@@ -2,9 +2,5 @@
   "buildCommand": "npm run build",
   "outputDirectory": "build",
   "devCommand": "npm start",
-  "installCommand": "npm install --legacy-peer-deps",
-  "functions": {
-    "api/contracts.js": { "maxDuration": 30 },
-    "api/demo.js": { "maxDuration": 60 }
-  }
+  "installCommand": "npm install --legacy-peer-deps"
 }

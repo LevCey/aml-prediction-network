@@ -1,94 +1,102 @@
 const CANTON_API = process.env.CANTON_API_URL || 'http://46.224.56.32:7575';
 const PARTY = process.env.CANTON_PARTY || 'Bank_A::122031dacd1d842e4499cf58bc1391ec402816ebc0edf2a240b0ff9322f7e7b97a3a';
 
+const TIMEOUT_OFFSET = 8000;
+const TIMEOUT_CONTRACTS = 20000;
+
+const AML_TEMPLATES = [
+  'BankReputation:BankReputation',
+  'PredictionMarket:RiskScore',
+  'PredictionMarket:SARReport',
+  'PredictionMarket:PredictionMarket',
+];
+
+/** Extract human-readable name from Canton party ID (e.g. "Bank_A::abc..." → "Bank A") */
 function parseName(partyId) {
   return (partyId || '').split('::')[0].replace(/_/g, ' ');
 }
 
-// Daml Map is serialized as array of [key, value] tuples
+/** Daml Map serializes as array of [key, value] tuples, not as a JSON object */
 function parseVotes(votesRaw) {
   if (!Array.isArray(votesRaw)) return [];
-  return votesRaw.map(entry => {
-    const [party, vote] = Array.isArray(entry) ? entry : [null, null];
-    if (!party || !vote) return null;
-    return {
+  return votesRaw.flatMap(entry => {
+    if (!Array.isArray(entry) || entry.length < 2) return [];
+    const [party, vote] = entry;
+    if (!party || !vote) return [];
+    return [{
       voter: parseName(party),
       confidence: Math.round(parseFloat(vote.confidence || 0) * 1000) / 10,
-      weight: parseFloat(vote.stake || 1)
-    };
-  }).filter(Boolean);
+      weight: parseFloat(vote.stake || 1),
+    }];
+  });
 }
 
-// Template ID format: packageHash:ModuleName:TemplateName
+/** Template ID format: packageHash:ModuleName:TemplateName → extract TemplateName */
 function getTemplateName(templateId) {
   const parts = (templateId || '').split(':');
   return parts[2] || parts[1] || '';
 }
 
+/** Transform raw contract entry into a typed API response object */
+function transformContract(item) {
+  const key = Object.keys(item.contractEntry || {})[0];
+  if (!key) return null;
+
+  const ce = item.contractEntry[key].createdEvent || {};
+  const template = getTemplateName(ce.templateId);
+  const args = ce.createArgument || {};
+  const base = { contractId: (ce.contractId || '').slice(0, 16), template };
+
+  switch (template) {
+    case 'BankReputation':
+      return { ...base, bank: parseName(args.bank), reputationScore: parseFloat(args.reputationScore) || 0, accuracy: parseFloat(args.accuracy) || 0 };
+    case 'PredictionMarket': {
+      if (args.isOpen !== true) return null;
+      const votes = parseVotes(args.votes);
+      if (votes.length === 0) return null;
+      return { ...base, transactionId: args.transactionId, isOpen: true, creator: parseName(args.creator), votes };
+    }
+    case 'RiskScore':
+      return { ...base, transactionId: args.transactionId, riskScore: Math.round(parseFloat(args.score || 0) * 1000) / 10, actionTaken: args.actionTaken || null, sarFiled: args.sarFiled || false };
+    case 'SARReport':
+      return { ...base, transactionId: args.transactionId, riskScore: Math.round(parseFloat(args.riskScore || 0) * 1000) / 10, status: args.status };
+    default:
+      return null;
+  }
+}
+
 export default async function handler(req, res) {
+  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+
   try {
-    // Get current offset
-    const offsetRes = await fetch(`${CANTON_API}/v2/state/ledger-end`, { signal: AbortSignal.timeout(8000) });
+    const offsetRes = await fetch(`${CANTON_API}/v2/state/ledger-end`, { signal: AbortSignal.timeout(TIMEOUT_OFFSET) });
+    if (!offsetRes.ok) throw new Error(`Ledger endpoint returned ${offsetRes.status}`);
     const { offset } = await offsetRes.json();
 
-    // Targeted query: only AML templates, filtered by party (much faster than wildcard)
+    const filter = {
+      filtersByParty: {
+        [PARTY]: {
+          cumulative: AML_TEMPLATES.map(t => ({
+            identifierFilter: { TemplateFilter: { value: { templateId: `#aml-network:${t}`, includeCreatedEventBlob: false } } },
+          })),
+        },
+      },
+    };
+
     const acRes = await fetch(`${CANTON_API}/v2/state/active-contracts`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        filter: {
-          filtersByParty: {
-            [PARTY]: {
-              cumulative: [
-                { identifierFilter: { TemplateFilter: { value: { templateId: '#aml-network:BankReputation:BankReputation', includeCreatedEventBlob: false } } } },
-                { identifierFilter: { TemplateFilter: { value: { templateId: '#aml-network:PredictionMarket:RiskScore', includeCreatedEventBlob: false } } } },
-                { identifierFilter: { TemplateFilter: { value: { templateId: '#aml-network:PredictionMarket:SARReport', includeCreatedEventBlob: false } } } },
-                { identifierFilter: { TemplateFilter: { value: { templateId: '#aml-network:PredictionMarket:PredictionMarket', includeCreatedEventBlob: false } } } },
-              ]
-            }
-          }
-        },
-        verbose: true,
-        activeAtOffset: offset
-      }),
-      signal: AbortSignal.timeout(20000)
+      body: JSON.stringify({ filter, verbose: true, activeAtOffset: offset }),
+      signal: AbortSignal.timeout(TIMEOUT_CONTRACTS),
     });
+    if (!acRes.ok) throw new Error(`Active contracts endpoint returned ${acRes.status}`);
+
     const entries = await acRes.json();
     const data = Array.isArray(entries) ? entries : [];
-
-    const contracts = data
-      .map(item => {
-        const key = Object.keys(item.contractEntry || {})[0];
-        if (!key) return null;
-        const ce = item.contractEntry[key].createdEvent || {};
-        return { templateId: ce.templateId || '', contractId: ce.contractId || '', args: ce.createArgument || {} };
-      })
-      .filter(Boolean)
-      .map(c => {
-        const template = getTemplateName(c.templateId);
-        const base = { contractId: c.contractId.slice(0, 16), template };
-
-        if (template === 'BankReputation') {
-          return { ...base, bank: parseName(c.args.bank), reputationScore: parseFloat(c.args.reputationScore) || 0, accuracy: parseFloat(c.args.accuracy) || 0 };
-        }
-        if (template === 'PredictionMarket') {
-          if (c.args.isOpen !== true) return null;
-          const votes = parseVotes(c.args.votes);
-          if (votes.length === 0) return null;
-          return { ...base, transactionId: c.args.transactionId, isOpen: true, creator: parseName(c.args.creator), votes };
-        }
-        if (template === 'RiskScore') {
-          return { ...base, transactionId: c.args.transactionId, riskScore: Math.round(parseFloat(c.args.score || 0) * 1000) / 10, actionTaken: c.args.actionTaken || null, sarFiled: c.args.sarFiled || false };
-        }
-        if (template === 'SARReport') {
-          return { ...base, transactionId: c.args.transactionId, riskScore: Math.round(parseFloat(c.args.riskScore || 0) * 1000) / 10, status: c.args.status };
-        }
-        return null;
-      })
-      .filter(Boolean);
+    const contracts = data.map(transformContract).filter(Boolean);
 
     res.json({ success: true, mode: 'canton-devnet', totalContracts: data.length, contracts, offset });
   } catch (err) {
-    res.json({ success: false, error: err.message, totalContracts: 0, contracts: [] });
+    res.status(502).json({ success: false, error: err.message, totalContracts: 0, contracts: [] });
   }
 }
