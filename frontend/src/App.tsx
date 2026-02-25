@@ -251,7 +251,7 @@ function DashboardView({ devnet, loading }: { devnet: DevnetState; loading: bool
                 {c.createdAt && <span className="contract-time">{formatTime(c.createdAt)}</span>}
                 {c.creator && <span><strong>Creator:</strong> {c.creator}</span>}
                 {c.votes && <span><strong>Votes:</strong> {c.votes.length}</span>}
-                {c.riskScore != null && <span><strong>Risk:</strong> {c.riskScore}%</span>}
+                {c.riskScore != null && <span className={`risk-colored ${c.riskScore >= 80 ? 'risk-high' : c.riskScore >= 60 ? 'risk-medium' : 'risk-low'}`}><strong>Risk: {c.riskScore}%</strong></span>}
                 {c.template === 'RiskScore' && <span className={`action-badge ${action.toLowerCase()}`}>{action}</span>}
               </div>
             </div>
