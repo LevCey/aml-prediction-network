@@ -209,9 +209,9 @@ function DashboardView({ devnet, loading }: { devnet: DevnetState; loading: bool
           <div className="stat-value">{sarReports.length}</div>
           <div className="stat-label">SAR REPORTS</div>
         </div>
-        <div className="stat-card success">
-          <div className="stat-value">{devnet.connected ? '✓' : '✗'}</div>
-          <div className="stat-label">DEVNET {devnet.connected ? 'LIVE' : 'OFFLINE'}</div>
+        <div className="stat-card">
+          <div className="stat-value">{riskScores.filter(c => (c.riskScore ?? 0) >= 80).length}</div>
+          <div className="stat-label">BLOCKED</div>
         </div>
       </div>
 
