@@ -291,8 +291,8 @@ function PredictionMarketView({ devnet }: { devnet: DevnetState }) {
       <h2>Risk Signal Aggregation on Canton</h2>
 
       <div className="market-info-box collapsible" onClick={() => setShowInfo(!showInfo)}>
-        <h3>How It Works {showInfo ? '▼' : '▶'}</h3>
-        {showInfo && <p>Institutions submit confidential risk signals on suspicious transactions. Signals are weighted by reputation and aggregated into a network-wide risk score. All commitments are recorded on Canton Network for immutable audit trail.</p>}
+        <h3>ℹ️ How It Works {showInfo ? '▼' : '▶'}</h3>
+        {showInfo && <p>Participating institutions submit confidential risk signals on suspicious transactions. Signals are weighted by institutional reputation and aggregated into a network-wide risk score. Commitments are recorded on Canton Network to ensure an immutable audit trail.</p>}
       </div>
 
       <div className="market-stats">
