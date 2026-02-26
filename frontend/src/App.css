@@ -882,7 +882,7 @@ body {
   border-left: 3px solid #7c3aed;
 }
 
-.risk-colored { font-size: 0.95em; }
+.risk-colored { font-weight: 700; }
 .risk-high { color: #ef4444; }
 .risk-medium { color: #f59e0b; }
 .risk-low { color: #22c55e; }
