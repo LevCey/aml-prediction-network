@@ -17,6 +17,7 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
 }
 
 /* Header */
@@ -505,41 +506,7 @@ body {
   opacity: 0.8;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  .header h1 {
-    font-size: 1.75rem;
-  }
-
-  .subtitle {
-    font-size: 0.875rem;
-  }
-
-  .tabs {
-    padding: 0 1rem;
-  }
-
-  .tab {
-    padding: 0.75rem 1rem;
-    font-size: 0.875rem;
-  }
-
-  .content {
-    padding: 1rem;
-  }
-
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .score-value {
-    font-size: 3rem;
-  }
-
-  .patterns-grid {
-    grid-template-columns: 1fr;
-  }
-}
+/* Responsive Design - moved to end of file */
 
 
 /* SAR Alert Styles */
@@ -810,7 +777,7 @@ body {
 /* Header updates */
 .header-logo { width: 40px; height: 40px; border-radius: 8px; margin-right: 12px; }
 .header-content { display: flex; align-items: center; }
-.header-right { display: flex; align-items: center; gap: 16px; }
+.header-right { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .devnet-status { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #a0aec0; }
 .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #ef4444; }
 .status-dot.connected { background: #22c55e; animation: pulse-glow 2s infinite; box-shadow: 0 0 8px #22c55e; }
@@ -975,3 +942,20 @@ body {
 .verification-label { font-size: 10px; color: #64748b; letter-spacing: 0.3px; }
 .verification-footer { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
 .verification-badge { background: #166534; color: #bbf7d0; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+
+/* Responsive Design — must be last to override all grid definitions */
+@media (max-width: 768px) {
+  .header { flex-direction: column; gap: 12px; padding: 1rem; }
+  .header-right { gap: 8px; justify-content: center; }
+  .header h1 { font-size: 1.75rem; }
+  .subtitle { font-size: 0.875rem; }
+  .tabs { padding: 0 1rem; overflow-x: auto; }
+  .tab { padding: 0.75rem 1rem; font-size: 0.875rem; white-space: nowrap; }
+  .content { padding: 1rem; }
+  .stats-grid, .regulator-stats, .market-stats { grid-template-columns: 1fr; }
+  .contracts-list { grid-template-columns: 1fr; }
+  .resolved-grid { grid-template-columns: 1fr; }
+  .compliance-grid { grid-template-columns: 1fr; }
+  .patterns-grid { grid-template-columns: 1fr; }
+  .score-value { font-size: 3rem; }
+}
