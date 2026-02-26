@@ -391,7 +391,7 @@ function PatternsView() {
           <div key={i} className="pattern-card">
             <div className="pattern-header">
               <h4>{pattern.name}</h4>
-              <span className="pattern-category">{pattern.category}</span>
+              <span className={`pattern-category ${pattern.category.toLowerCase()}`}>{pattern.category}</span>
             </div>
             <div className="pattern-stats">
               <div className="pattern-stat">
@@ -409,7 +409,7 @@ function PatternsView() {
       </div>
 
       <div className="market-info-box collapsible" onClick={() => setShowProcess(!showProcess)}>
-        <h3>ℹ️ How Pattern Sharing Works {showProcess ? '▼' : '▶'}</h3>
+        <h3>ℹ️ How Cross-Institution Pattern Sharing Works {showProcess ? '▼' : '▶'}</h3>
         {showProcess && (
           <ol className="pattern-process">
             <li><strong>Detection:</strong> Bank detects fraud pattern</li>
@@ -422,8 +422,8 @@ function PatternsView() {
       </div>
 
       <div className="privacy-note canton-privacy">
-        <strong>🔒 Privacy Guaranteed:</strong> No customer names, account numbers, or PII shared.
-        Only behavioral patterns protected by Canton Network's selective disclosure.
+        <strong>🔒 Privacy Guaranteed:</strong> No customer identifiers, account numbers, or PII are shared.
+        Only behavioral risk patterns are exchanged under Canton Network's selective disclosure model.
       </div>
     </div>
   );
