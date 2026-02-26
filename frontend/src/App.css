@@ -964,8 +964,8 @@ body {
 .vote-stake { width: 50px; font-size: 12px; color: #64748b; text-align: right; }
 
 .market-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid #334155; }
-.risk-score { color: #94a3b8; font-size: 14px; }
-.risk-score strong { color: #f1f5f9; font-size: 18px; }
+.risk-score { color: #64748b; font-size: 13px; font-weight: 400; }
+.risk-score strong { font-size: 20px; }
 
 /* Audit log */
 .audit-log { background: #0f172a; border-radius: 10px; padding: 4px; }
