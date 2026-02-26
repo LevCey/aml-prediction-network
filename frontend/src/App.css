@@ -930,7 +930,11 @@ body {
 
 /* Markets list */
 .markets-list { display: flex; flex-direction: column; gap: 16px; }
+.resolved-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(480px, 1fr)); gap: 12px; }
 .market-info-box { background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 10px; padding: 20px; margin-bottom: 24px; }
+.market-info-box.collapsible { cursor: pointer; }
+.market-info-box.collapsible h3 { margin-bottom: 0; }
+.market-info-box.collapsible p { margin-top: 12px; }
 .market-info-box h3 { margin-bottom: 8px; color: #2563eb; font-size: 16px; font-weight: 600; }
 .market-info-box p { color: #1e293b; line-height: 1.6; }
 

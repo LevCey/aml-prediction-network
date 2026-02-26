@@ -275,9 +275,11 @@ function DashboardView({ devnet, loading }: { devnet: DevnetState; loading: bool
 }
 
 function PredictionMarketView({ devnet }: { devnet: DevnetState }) {
+  const [showInfo, setShowInfo] = useState(false);
   const riskScores = byTemplate(devnet.contracts, 'RiskScore');
   const openMarkets = byTemplate(devnet.contracts, 'PredictionMarket');
   const reputations = byTemplate(devnet.contracts, 'BankReputation');
+  const sortedScores = [...riskScores].sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 
   const blockedCount = riskScores.filter(c => (c.riskScore ?? 0) >= 80).length;
   const avgAccuracy = reputations.length > 0
@@ -288,9 +290,9 @@ function PredictionMarketView({ devnet }: { devnet: DevnetState }) {
     <div className="prediction-market">
       <h2>Risk Signal Aggregation on Canton</h2>
 
-      <div className="market-info-box">
-        <h3>How It Works</h3>
-        <p>Institutions submit confidential risk signals on suspicious transactions. Signals are weighted by reputation and aggregated into a network-wide risk score. All commitments are recorded on Canton Network for immutable audit trail.</p>
+      <div className="market-info-box collapsible" onClick={() => setShowInfo(!showInfo)}>
+        <h3>How It Works {showInfo ? '▼' : '▶'}</h3>
+        {showInfo && <p>Institutions submit confidential risk signals on suspicious transactions. Signals are weighted by reputation and aggregated into a network-wide risk score. All commitments are recorded on Canton Network for immutable audit trail.</p>}
       </div>
 
       <div className="market-stats">
@@ -300,47 +302,47 @@ function PredictionMarketView({ devnet }: { devnet: DevnetState }) {
         <div className="market-stat"><span className="stat-num">{openMarkets.length}</span><span className="stat-lbl">Active</span></div>
       </div>
 
-      <h3>Active Markets</h3>
-      <div className="markets-list">
-        {openMarkets.length > 0 ? openMarkets.map((m, i) => (
-          <div key={i} className="market-card active">
-            <div className="market-header">
-              <div className="market-title">
-                <span className="market-tx">{m.transactionId}</span>
-                <span className="market-amount">Creator: {m.creator}</span>
-              </div>
-              <span className="market-status active">● ACTIVE</span>
-            </div>
-            {m.votes && m.votes.length > 0 && (
-              <div className="market-votes">
-                {m.votes.map((v, j) => (
-                  <div key={j} className="vote-item">
-                    <span className="vote-bank">🏦 {v.voter}</span>
-                    <div className="vote-bar-wrap">
-                      <div className="vote-bar-bg">
-                        <div className="vote-bar-fill" style={{ width: `${v.confidence}%`, background: v.confidence > 70 ? '#ef4444' : v.confidence > 50 ? '#f59e0b' : '#22c55e' }}></div>
-                      </div>
-                      <span className="vote-pct">{v.confidence}%</span>
-                    </div>
-                    <span className="vote-weight">w: {v.weight}</span>
+      {openMarkets.length > 0 && (
+        <>
+          <h3>Active Markets</h3>
+          <div className="markets-list">
+            {openMarkets.map((m, i) => (
+              <div key={i} className="market-card active">
+                <div className="market-header">
+                  <div className="market-title">
+                    <span className="market-tx">{m.transactionId}</span>
+                    <span className="market-amount">Creator: {m.creator}</span>
                   </div>
-                ))}
+                  <span className="market-status active">● ACTIVE</span>
+                </div>
+                {m.votes && m.votes.length > 0 && (
+                  <div className="market-votes">
+                    {m.votes.map((v, j) => (
+                      <div key={j} className="vote-item">
+                        <span className="vote-bank">🏦 {v.voter}</span>
+                        <div className="vote-bar-wrap">
+                          <div className="vote-bar-bg">
+                            <div className="vote-bar-fill" style={{ width: `${v.confidence}%`, background: v.confidence > 70 ? '#ef4444' : v.confidence > 50 ? '#f59e0b' : '#22c55e' }}></div>
+                          </div>
+                          <span className="vote-pct">{v.confidence}%</span>
+                        </div>
+                        <span className="vote-weight">w: {v.weight}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div className="market-footer">
+                  <span className="risk-score">Votes: <strong>{m.votes?.length || 0}</strong></span>
+                </div>
               </div>
-            )}
-            <div className="market-footer">
-              <span className="risk-score">Votes: <strong>{m.votes?.length || 0}</strong></span>
-            </div>
+            ))}
           </div>
-        )) : (
-          <div className="contract-card">
-            <div className="contract-details"><span>No active markets — all markets resolved</span></div>
-          </div>
-        )}
-      </div>
+        </>
+      )}
 
       <h3>Resolved Assessments</h3>
-      <div className="markets-list">
-        {riskScores.length > 0 ? [...riskScores].sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || '')).map((m, i) => {
+      <div className="resolved-grid">
+        {sortedScores.length > 0 ? sortedScores.map((m, i) => {
           const score = m.riskScore ?? 0;
           const action = riskAction(score);
           return (
@@ -350,7 +352,7 @@ function PredictionMarketView({ devnet }: { devnet: DevnetState }) {
                 <span className="market-status resolved">● RESOLVED</span>
               </div>
               <div className="market-footer">
-                <span className="risk-score">Risk Score: <strong>{score}%</strong></span>
+                <span className={`risk-colored ${score >= 80 ? 'risk-high' : score >= 60 ? 'risk-medium' : 'risk-low'}`}>Risk Score: <strong>{score}%</strong></span>
                 <span className={`action-badge ${action.toLowerCase()}`}>{action}</span>
                 {m.createdAt && <span className="contract-time">{formatTime(m.createdAt)}</span>}
               </div>
