@@ -299,7 +299,7 @@ function PredictionMarketView({ devnet }: { devnet: DevnetState }) {
         <div className="market-stat"><span className="stat-num">{riskScores.length + openMarkets.length}</span><span className="stat-lbl">Total Markets</span></div>
         <div className="market-stat"><span className="stat-num">{blockedCount}</span><span className="stat-lbl">Blocked</span></div>
         <div className="market-stat"><span className="stat-num">{avgAccuracy > 0 ? `${avgAccuracy}%` : '—'}</span><span className="stat-lbl">Avg Accuracy</span></div>
-        <div className="market-stat"><span className="stat-num">{openMarkets.length}</span><span className="stat-lbl">Active</span></div>
+        <div className="market-stat"><span className="stat-num">{riskScores.length}</span><span className="stat-lbl">Resolved</span></div>
       </div>
 
       {openMarkets.length > 0 && (
