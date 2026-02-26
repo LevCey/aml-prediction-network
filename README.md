@@ -4,7 +4,7 @@
 
 A privacy-preserving coordination layer that turns isolated institutional judgments into shared probabilistic awareness — built on Canton Network.
 
-🏆 **Canton Catalyst 2026 Winner** — Currently in Mentorship Program
+🏆 **Canton Construct 2025 Winner** — Canton Catalyst Mentorship Program 2026
 
 **Live Demo:** [amlprediction.network](https://amlprediction.network)
 **Video:** [youtu.be/6mbqRq8GPiA](https://youtu.be/6mbqRq8GPiA)
@@ -212,4 +212,4 @@ MIT License
 
 ---
 
-🏆 Canton Catalyst 2026 Winner
+🏆 Canton Construct 2025 Winner — Canton Catalyst Mentorship Program 2026

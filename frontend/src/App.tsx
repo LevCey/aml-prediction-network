@@ -167,7 +167,7 @@ function MainDashboard() {
       </main>
 
       <footer className="footer">
-        <p>🏆 Canton Catalyst 2026 Winner</p>
+        <p>🏆 Canton Construct 2025 Winner — Catalyst Mentorship 2026</p>
       </footer>
     </div>
   );

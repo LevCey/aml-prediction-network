@@ -6,11 +6,10 @@
 
 ## Current Status — February 2026
 
-- ✅ Canton Catalyst 2026 Winner
+- ✅ Canton Construct 2025 Winner
 - ✅ Mentorship program (ongoing)
 - ✅ Working prototype on Canton DevNet
 - ✅ Live demo: [amlprediction.network](https://amlprediction.network)
-- ✅ Landing page: [amlprediction.com](https://amlprediction.com)
 
 ---
 

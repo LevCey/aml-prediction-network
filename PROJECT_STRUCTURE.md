@@ -59,7 +59,6 @@ FraudPattern → SuspiciousTransaction → PredictionMarket → RiskScore → SA
 ## External Resources
 
 - **Live Demo**: [amlprediction.network](https://amlprediction.network)
-- **Landing Page**: [amlprediction.com](https://amlprediction.com)
 - **Pitch Deck**: [Google Slides](https://docs.google.com/presentation/d/1QeAzXsDw32-4pzpfxsuMirPDRZPryVMPpGeKwzSHwlc/edit?usp=sharing)
 - **Video**: [YouTube](https://youtu.be/OnXVF5nY2yI)
 
