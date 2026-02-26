@@ -435,17 +435,24 @@ function RegulatorView({ devnet }: { devnet: DevnetState }) {
   const [showVerification, setShowVerification] = useState(true);
   const sarReports = byTemplate(devnet.contracts, 'SARReport');
   const riskScores = byTemplate(devnet.contracts, 'RiskScore');
+  const blockedCount = riskScores.filter(c => (c.riskScore ?? 0) >= 80).length;
 
-  // Build audit log from real on-chain data
-  const auditEntries = riskScores.slice(0, 5).flatMap(c => {
+  const ACTION_LABELS: Record<string, string> = {
+    BLOCKED: 'Blocked', REVIEW: 'Under Review', APPROVED: 'Approved',
+    MARKET_CLOSED: 'Market Closed', SAR_FILED: 'SAR Filed',
+  };
+
+  // Build audit log from real on-chain data, newest first
+  const sortedScores = [...riskScores].sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+  const auditEntries = sortedScores.slice(0, 5).flatMap(c => {
     const score = c.riskScore ?? 0;
     const action = riskAction(score);
     const entries = [
-      { action: action === 'BLOCKED' ? 'BLOCKED' : action === 'REVIEW' ? 'REVIEW' : 'APPROVED', tx: c.transactionId || '', detail: `Risk score: ${score}%` },
-      { action: 'MARKET_CLOSED', tx: c.transactionId || '', detail: `Decision: ${action}` },
+      { action, tx: c.transactionId || '', detail: `Risk score: ${score}%`, time: c.createdAt },
+      { action: 'MARKET_CLOSED', tx: c.transactionId || '', detail: `Decision: ${action}`, time: c.createdAt },
     ];
     if (c.sarFiled) {
-      entries.unshift({ action: 'SAR_FILED', tx: c.transactionId || '', detail: `Auto-filed SAR, risk score ${score}%` });
+      entries.unshift({ action: 'SAR_FILED', tx: c.transactionId || '', detail: `Auto-filed SAR, risk score ${score}%`, time: c.createdAt });
     }
     return entries;
   });
@@ -464,9 +471,9 @@ function RegulatorView({ devnet }: { devnet: DevnetState }) {
           <div className="stat-value">{devnet.parties.filter(p => !p.isRegulator).length || 0}</div>
           <div className="stat-label">INSTITUTIONS ACTIVE</div>
         </div>
-        <div className="stat-card success">
-          <div className="stat-value">{devnet.connected ? '✓' : '✗'}</div>
-          <div className="stat-label">DEVNET {devnet.connected ? 'LIVE' : 'OFFLINE'}</div>
+        <div className="stat-card">
+          <div className="stat-value">{blockedCount}</div>
+          <div className="stat-label">BLOCKED</div>
         </div>
         <div className="stat-card highlight">
           <div className="stat-value">{sarReports.length}</div>
@@ -475,13 +482,14 @@ function RegulatorView({ devnet }: { devnet: DevnetState }) {
       </div>
 
       <div className="regulator-section">
-        <h3>📋 Audit Log (from on-chain data)</h3>
+        <h3>📋 On-Chain Audit Log <span className="live-feed-badge">● Live</span></h3>
         <div className="audit-log">
           {auditEntries.length > 0 ? auditEntries.map((log, i) => (
             <div key={i} className="audit-entry">
-              <span className={`audit-action ${log.action.toLowerCase().replace('_', '-')}`}>{log.action}</span>
+              <span className={`audit-action ${log.action.toLowerCase().replace('_', '-')}`}>{ACTION_LABELS[log.action] || log.action}</span>
               <span className="audit-tx">{log.tx}</span>
               <span className="audit-detail">{log.detail}</span>
+              {log.time && <span className="contract-time">{formatTime(log.time)}</span>}
             </div>
           )) : (
             <div className="audit-entry">
@@ -491,9 +499,9 @@ function RegulatorView({ devnet }: { devnet: DevnetState }) {
         </div>
       </div>
 
-      <div className="compliance-note">
-        <strong>🔒 Privacy Preserved:</strong> Regulator sees actions and outcomes, but NO customer PII is exposed.
-        All data is anonymized and protected by Canton Network's selective disclosure.
+      <div className="privacy-note canton-privacy">
+        <strong>🔒 Privacy Preserved:</strong> Regulator sees actions and outcomes, but no customer PII is exposed.
+        All data is anonymized and protected under Canton Network's selective disclosure model.
       </div>
 
       <div className="regulator-section verification-section">
