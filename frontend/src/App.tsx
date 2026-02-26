@@ -483,6 +483,7 @@ function RegulatorView({ devnet }: { devnet: DevnetState }) {
 
       <div className="regulator-section">
         <h3>📋 On-Chain Audit Log <span className="live-feed-badge">● Live</span></h3>
+        <p className="section-subtitle">Immutable record of risk assessments, market closures, and enforcement decisions</p>
         <div className="audit-log">
           {auditEntries.length > 0 ? auditEntries.map((log, i) => (
             <div key={i} className="audit-entry">
@@ -535,10 +536,10 @@ function RegulatorView({ devnet }: { devnet: DevnetState }) {
           <div className="compliance-column">
             <h4 className="shared-title">✓ What IS Shared</h4>
             <ul>
-              <li>Behavioral patterns (hashed)</li>
-              <li>Risk scores (aggregated)</li>
-              <li>Fraud outcomes</li>
-              <li>Audit trail</li>
+              <li>Behavioral patterns (hashed representations)</li>
+              <li>Aggregated risk scores</li>
+              <li>Fraud outcome classifications</li>
+              <li>Immutable audit metadata</li>
             </ul>
           </div>
           <div className="compliance-column">
