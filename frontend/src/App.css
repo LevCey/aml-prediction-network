@@ -887,6 +887,9 @@ body {
 .risk-medium { color: #f59e0b; }
 .risk-low { color: #22c55e; }
 
+.section-subtitle { color: #64748b; font-size: 14px; margin-top: -8px; margin-bottom: 20px; }
+.pattern-process { margin-top: 12px; color: #1e293b; line-height: 2; }
+
 .live-feed-badge { font-size: 0.65em; font-weight: 600; color: #22c55e; vertical-align: middle; margin-left: 8px; animation: pulse-glow 2s infinite; }
 
 .resolved-grid > .market-card, .contracts-list > .contract-card { animation: fadeIn 0.4s ease-in; }

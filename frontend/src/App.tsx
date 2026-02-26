@@ -368,22 +368,27 @@ function PredictionMarketView({ devnet }: { devnet: DevnetState }) {
   );
 }
 
-// --- Patterns View (static — TransactionPattern not deployed on DevNet) ---
+// --- Patterns View (reference library — TransactionPattern not deployed on DevNet) ---
 
 const FRAUD_PATTERNS = [
-  { id: 'PAT_001', name: 'Classic Structuring', category: 'Structuring', detected: 12, accuracy: 94 },
-  { id: 'PAT_002', name: 'Crypto Exchange Laundering', category: 'Layering', detected: 8, accuracy: 87 },
-  { id: 'PAT_003', name: 'Smurfing Network', category: 'Smurfing', detected: 5, accuracy: 91 },
+  { name: 'Classic Structuring', category: 'Structuring', detected: 12, accuracy: 94, risk: 'high' },
+  { name: 'Crypto Exchange Laundering', category: 'Layering', detected: 8, accuracy: 87, risk: 'high' },
+  { name: 'Smurfing Network', category: 'Smurfing', detected: 5, accuracy: 91, risk: 'high' },
+  { name: 'Shell Company Transfers', category: 'Layering', detected: 3, accuracy: 82, risk: 'medium' },
+  { name: 'Rapid Cross-Border Movement', category: 'Integration', detected: 6, accuracy: 79, risk: 'medium' },
 ];
 
 function PatternsView() {
+  const [showProcess, setShowProcess] = useState(false);
+
   return (
     <div className="patterns">
       <h2>Fraud Pattern Library</h2>
+      <p className="section-subtitle">Reference patterns used for behavioral matching across the network</p>
 
       <div className="patterns-grid">
-        {FRAUD_PATTERNS.map(pattern => (
-          <div key={pattern.id} className="pattern-card">
+        {FRAUD_PATTERNS.map((pattern, i) => (
+          <div key={i} className="pattern-card">
             <div className="pattern-header">
               <h4>{pattern.name}</h4>
               <span className="pattern-category">{pattern.category}</span>
@@ -398,24 +403,26 @@ function PatternsView() {
                 <span className="stat-text">Accuracy</span>
               </div>
             </div>
-            <div className="pattern-id">{pattern.id}</div>
           </div>
         ))}
       </div>
 
-      <div className="pattern-info">
-        <h3>How Pattern Sharing Works</h3>
-        <ol>
-          <li><strong>Detection:</strong> Bank detects fraud pattern</li>
-          <li><strong>Anonymization:</strong> Pattern hashed, no customer data</li>
-          <li><strong>Sharing:</strong> Pattern broadcast to network</li>
-          <li><strong>Matching:</strong> Other banks check for similarities</li>
-          <li><strong>Prevention:</strong> Real-time alerts on pattern match</li>
-        </ol>
-        <p className="privacy-note">
-          <strong>Privacy Guaranteed:</strong> No customer names, account numbers, or PII shared.
-          Only behavioral patterns protected by Canton Network's selective disclosure.
-        </p>
+      <div className="market-info-box collapsible" onClick={() => setShowProcess(!showProcess)}>
+        <h3>ℹ️ How Pattern Sharing Works {showProcess ? '▼' : '▶'}</h3>
+        {showProcess && (
+          <ol className="pattern-process">
+            <li><strong>Detection:</strong> Bank detects fraud pattern</li>
+            <li><strong>Anonymization:</strong> Pattern hashed, no customer data</li>
+            <li><strong>Sharing:</strong> Pattern broadcast to network</li>
+            <li><strong>Matching:</strong> Other banks check for similarities</li>
+            <li><strong>Prevention:</strong> Real-time alerts on pattern match</li>
+          </ol>
+        )}
+      </div>
+
+      <div className="privacy-note canton-privacy">
+        <strong>🔒 Privacy Guaranteed:</strong> No customer names, account numbers, or PII shared.
+        Only behavioral patterns protected by Canton Network's selective disclosure.
       </div>
     </div>
   );
