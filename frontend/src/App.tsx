@@ -233,7 +233,7 @@ function DashboardView({ devnet, loading }: { devnet: DevnetState; loading: bool
         })}
       </div>
 
-      <h3>Recent Risk Assessments {loading && '(loading...)'}</h3>
+      <h3>Recent Risk Assessments {loading && '(loading...)'} <span className="live-feed-badge">● Live Feed</span></h3>
       <div className="contracts-list">
         {assessments.length > 0 ? assessments.slice(0, 10).map((c, i) => {
           const score = c.riskScore ?? 0;
@@ -340,7 +340,7 @@ function PredictionMarketView({ devnet }: { devnet: DevnetState }) {
         </>
       )}
 
-      <h3>Resolved Assessments</h3>
+      <h3>Resolved Assessments <span className="live-feed-badge">● Live Feed</span></h3>
       <div className="resolved-grid">
         {sortedScores.length > 0 ? sortedScores.map((m, i) => {
           const score = m.riskScore ?? 0;
