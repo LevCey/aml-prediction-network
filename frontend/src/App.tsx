@@ -412,11 +412,11 @@ function PatternsView() {
         <h3>ℹ️ How Cross-Institution Pattern Sharing Works {showProcess ? '▼' : '▶'}</h3>
         {showProcess && (
           <ol className="pattern-process">
-            <li><strong>Detection:</strong> Bank detects fraud pattern</li>
-            <li><strong>Anonymization:</strong> Pattern hashed, no customer data</li>
-            <li><strong>Sharing:</strong> Pattern broadcast to network</li>
-            <li><strong>Matching:</strong> Other banks check for similarities</li>
-            <li><strong>Prevention:</strong> Real-time alerts on pattern match</li>
+            <li><strong>Detection:</strong> A participating institution identifies a behavioral fraud pattern</li>
+            <li><strong>Anonymization:</strong> The pattern is hashed; no customer data included</li>
+            <li><strong>Sharing:</strong> The anonymized pattern is shared with entitled network participants</li>
+            <li><strong>Matching:</strong> Other institutions check for similarity against live transactions</li>
+            <li><strong>Prevention:</strong> Real-time alerts triggered upon pattern match</li>
           </ol>
         )}
       </div>
