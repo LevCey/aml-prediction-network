@@ -469,7 +469,7 @@ function RegulatorView({ devnet }: { devnet: DevnetState }) {
         </div>
         <div className="stat-card">
           <div className="stat-value">{devnet.parties.filter(p => !p.isRegulator).length || 0}</div>
-          <div className="stat-label">INSTITUTIONS ACTIVE</div>
+          <div className="stat-label">PARTICIPATING INSTITUTIONS</div>
         </div>
         <div className="stat-card">
           <div className="stat-value">{blockedCount}</div>
@@ -516,6 +516,7 @@ function RegulatorView({ devnet }: { devnet: DevnetState }) {
                 <div key={i} className="verification-item">
                   <span className="verification-name">{party.isRegulator ? '🏛️' : '🏦'} {party.name}</span>
                   <code className="verification-id">{party.partyId}</code>
+                  <span className="verification-label">Party ID — cryptographic identifier on Canton ledger</span>
                 </div>
               ))}
             </div>
@@ -553,7 +554,7 @@ function RegulatorView({ devnet }: { devnet: DevnetState }) {
         <div className="compliance-badges">
           <span className="badge">BSA ✓</span>
           <span className="badge">GDPR ✓</span>
-          <span className="badge">314(b) ✓</span>
+          <span className="badge">USA PATRIOT Act §314(b) ✓</span>
         </div>
       </div>
     </div>
