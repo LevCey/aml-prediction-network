@@ -7,7 +7,6 @@ A privacy-preserving coordination layer that turns isolated institutional judgme
 🏆 **Canton Catalyst 2026 Winner** — Currently in Mentorship Program
 
 **Live Demo:** [amlprediction.network](https://amlprediction.network)
-**Landing Page:** [amlprediction.com](https://amlprediction.com)
 **Video:** [youtu.be/6mbqRq8GPiA](https://youtu.be/6mbqRq8GPiA)
 
 ![Dashboard Screenshot](assets/images/dashboard-screenshot.png)

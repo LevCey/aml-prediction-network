@@ -371,11 +371,11 @@ function PredictionMarketView({ devnet }: { devnet: DevnetState }) {
 // --- Patterns View (reference library — TransactionPattern not deployed on DevNet) ---
 
 const FRAUD_PATTERNS = [
-  { name: 'Classic Structuring', category: 'Structuring', detected: 12, accuracy: 94, risk: 'high' },
-  { name: 'Crypto Exchange Laundering', category: 'Layering', detected: 8, accuracy: 87, risk: 'high' },
-  { name: 'Smurfing Network', category: 'Smurfing', detected: 5, accuracy: 91, risk: 'high' },
-  { name: 'Shell Company Transfers', category: 'Layering', detected: 3, accuracy: 82, risk: 'medium' },
-  { name: 'Rapid Cross-Border Movement', category: 'Integration', detected: 6, accuracy: 79, risk: 'medium' },
+  { name: 'Classic Structuring', category: 'Structuring', detected: 12, accuracy: 94, sharedBy: 4 },
+  { name: 'Crypto Exchange Laundering', category: 'Layering', detected: 8, accuracy: 87, sharedBy: 3 },
+  { name: 'Smurfing Network', category: 'Smurfing', detected: 5, accuracy: 91, sharedBy: 3 },
+  { name: 'Shell Company Transfers', category: 'Layering', detected: 3, accuracy: 82, sharedBy: 2 },
+  { name: 'Rapid Cross-Border Movement', category: 'Integration', detected: 6, accuracy: 79, sharedBy: 4 },
 ];
 
 function PatternsView() {
@@ -398,11 +398,12 @@ function PatternsView() {
                 <span className="stat-number">{pattern.detected}</span>
                 <span className="stat-text">Times Detected</span>
               </div>
-              <div className="pattern-stat">
+              <div className="pattern-stat" title="Historical detection precision across participating institutions">
                 <span className="stat-number">{pattern.accuracy}%</span>
-                <span className="stat-text">Accuracy</span>
+                <span className="stat-text">Accuracy ⓘ</span>
               </div>
             </div>
+            <div className="pattern-meta">Shared by {pattern.sharedBy} institutions</div>
           </div>
         ))}
       </div>
