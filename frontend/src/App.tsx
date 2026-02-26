@@ -342,7 +342,7 @@ function PredictionMarketView({ devnet }: { devnet: DevnetState }) {
 
       <h3>Resolved Assessments <span className="live-feed-badge">● Live Feed</span></h3>
       <div className="resolved-grid">
-        {sortedScores.length > 0 ? sortedScores.map((m, i) => {
+        {sortedScores.length > 0 ? sortedScores.slice(0, 14).map((m, i) => {
           const score = m.riskScore ?? 0;
           const action = riskAction(score);
           return (
