@@ -66,7 +66,7 @@ function ContractId({ contract }: { contract: Contract }) {
       ) : (
         <span className="contract-id">{contract.transactionId || contract.contractId}</span>
       )}
-      {contract.ledgerOffset && <span className="ledger-offset">offset #{contract.ledgerOffset}</span>}
+      {contract.ledgerOffset && <span className="ledger-offset">Ledger #{contract.ledgerOffset.toLocaleString()}</span>}
     </span>
   );
 }
