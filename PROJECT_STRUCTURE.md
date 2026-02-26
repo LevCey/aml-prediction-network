@@ -66,7 +66,7 @@ FraudPattern → SuspiciousTransaction → PredictionMarket → RiskScore → SA
 ## Deployment
 
 - **Frontend**: Vercel (amlprediction.network)
-- **Smart Contracts**: Canton DevNet (Tenzro platform)
+- **Smart Contracts**: Canton DevNet
 - **Status**: ✅ DevNet deployment complete
 
 ---

@@ -8,7 +8,7 @@
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
-│                        CANTON DEVNET (Tenzro)                        │
+│                           CANTON DEVNET                               │
 │                                                                      │
 │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐   │
 │  │  Bank A     │ │  Bank B     │ │  Bank C     │ │  Bank D     │   │
@@ -34,8 +34,8 @@
 │                                                                      │
 └──────────────────────────────────┬───────────────────────────────────┘
                                    │
-                          Tenzro API Gateway
-                      api.platform.tenzro.com
+                          Canton DevNet API
+                       (JSON API / Ledger API)
                                    │
                     ┌──────────────▼──────────────┐
                     │   Vercel (Frontend + API)    │

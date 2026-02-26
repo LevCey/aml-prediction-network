@@ -511,7 +511,7 @@ function RegulatorView({ devnet }: { devnet: DevnetState }) {
         </h3>
         {showVerification && (
           <div className="verification-content">
-            <p className="verification-note">Live connection to Tenzro Canton DevNet — Party IDs are cryptographically unique</p>
+            <p className="verification-note">Live connection to Canton DevNet — Party IDs are cryptographically unique</p>
             <div className="verification-grid">
               {devnet.parties.map((party, i) => (
                 <div key={i} className="verification-item">
@@ -522,7 +522,7 @@ function RegulatorView({ devnet }: { devnet: DevnetState }) {
               ))}
             </div>
             <div className="verification-footer">
-              <span className="verification-badge">✓ tenzro-devnet</span>
+              <span className="verification-badge">✓ Canton DevNet</span>
               <span className="verification-badge">✓ Canton Network</span>
               <span className="verification-badge">✓ {devnet.parties.length} Parties Active</span>
             </div>
