@@ -327,7 +327,11 @@
     font-size: 12px;
     padding-left: 38px;
   }
-  .cinema-stage { padding: 16px; }
+  .cinema-stage {
+    padding: 16px;
+    justify-content: flex-start;
+    align-items: stretch;
+  }
   .cinema-alert { flex-direction: column; gap: 10px; padding: 16px; }
   .alert-meta { flex-wrap: wrap; }
   .cinema-intro h1 { font-size: 26px; }
