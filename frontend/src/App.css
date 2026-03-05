@@ -912,7 +912,7 @@ body {
 
 /* Audit log */
 .audit-log { background: #0f172a; border-radius: 10px; padding: 4px; }
-.audit-entry { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid #1e293b; font-size: 13px; }
+.audit-entry { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding: 12px 16px; border-bottom: 1px solid #1e293b; font-size: 13px; }
 .audit-entry:last-child { border-bottom: none; }
 .audit-time { color: #64748b; font-family: monospace; font-size: 12px; min-width: 70px; }
 .audit-action { padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; min-width: 100px; text-align: center; }
@@ -924,8 +924,9 @@ body {
 .audit-action.review { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
 .audit-action.approved { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
 .audit-bank { color: #cbd5e1; min-width: 130px; }
-.audit-tx { color: #64748b; font-family: monospace; font-size: 11px; min-width: 100px; }
-.audit-detail { color: #94a3b8; flex: 1; }
+.audit-tx { color: #64748b; font-family: monospace; font-size: 11px; min-width: 0; overflow-wrap: anywhere; }
+.audit-detail { color: #94a3b8; flex: 1 1 200px; min-width: 0; overflow-wrap: anywhere; }
+.audit-entry .contract-time { margin-left: auto; flex-shrink: 0; white-space: nowrap; }
 
 /* No data - hide it, always show sample */
 .no-data { display: none; }
@@ -958,4 +959,9 @@ body {
   .compliance-grid { grid-template-columns: 1fr; }
   .patterns-grid { grid-template-columns: 1fr; }
   .score-value { font-size: 3rem; }
+  .audit-entry { gap: 8px; padding: 10px 12px; }
+  .audit-action { min-width: 84px; }
+  .audit-tx { flex: 1 1 140px; font-size: 10px; }
+  .audit-detail { flex-basis: 100%; }
+  .audit-entry .contract-time { width: 100%; margin-left: 0; text-align: right; }
 }
