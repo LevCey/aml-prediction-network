@@ -304,7 +304,29 @@
 
 /* Mobile */
 @media (max-width: 639px) {
-  .cinema-header { padding: 10px 16px; }
+  .cinema-header {
+    padding: 10px 16px;
+    flex-wrap: wrap;
+    gap: 8px 10px;
+  }
+  .cinema-logo {
+    min-width: 0;
+    flex: 1;
+  }
+  .cinema-logo span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .cinema-status {
+    position: static;
+    transform: none;
+    width: 100%;
+    order: 3;
+    justify-content: flex-start;
+    font-size: 12px;
+    padding-left: 38px;
+  }
   .cinema-stage { padding: 16px; }
   .cinema-alert { flex-direction: column; gap: 10px; padding: 16px; }
   .alert-meta { flex-wrap: wrap; }
