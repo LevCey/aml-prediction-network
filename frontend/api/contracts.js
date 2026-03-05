@@ -68,15 +68,16 @@ function transformContract(item) {
 // In-memory cache for warm function instances
 let cache = null;
 let cacheTime = 0;
-const CACHE_TTL = 25000; // 25s — frontend refreshes every 30s
+const CACHE_TTL = 10000; // 10s
 
 export const config = { maxDuration: 30 };
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+  const fresh = req.query?.fresh === '1';
 
   // Serve from cache if fresh
-  if (cache && Date.now() - cacheTime < CACHE_TTL) {
+  if (!fresh && cache && Date.now() - cacheTime < CACHE_TTL) {
     return res.json(cache);
   }
 
@@ -111,7 +112,7 @@ export default async function handler(req, res) {
     cache = result;
     cacheTime = Date.now();
 
-    res.setHeader('Cache-Control', 's-maxage=25, stale-while-revalidate=60');
+    res.setHeader('Cache-Control', fresh ? 'no-store' : 's-maxage=10, stale-while-revalidate=30');
     res.json(result);
   } catch (err) {
     // Serve stale cache on error rather than showing empty dashboard

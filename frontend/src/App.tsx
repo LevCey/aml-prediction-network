@@ -98,12 +98,13 @@ function MainDashboard() {
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-  const fetchData = async () => {
+  const fetchData = async (fresh = false) => {
+    const suffix = fresh ? `?fresh=1&t=${Date.now()}` : '';
     try {
       const [health, contracts, parties] = await Promise.all([
-        fetch('/api/health').then(r => r.json()),
-        fetch('/api/contracts').then(r => r.json()),
-        fetch('/api/parties').then(r => r.json()),
+        fetch(`/api/health${suffix}`, { cache: 'no-store' }).then(r => r.json()),
+        fetch(`/api/contracts${suffix}`, { cache: 'no-store' }).then(r => r.json()),
+        fetch(`/api/parties${suffix}`, { cache: 'no-store' }).then(r => r.json()),
       ]);
       setDevnet({
         connected: health.status === 'ok',
@@ -119,9 +120,22 @@ function MainDashboard() {
   };
 
   useEffect(() => {
-    fetchData();
-    const interval = setInterval(fetchData, 30000);
-    return () => clearInterval(interval);
+    fetchData(true);
+    const interval = setInterval(() => fetchData(false), 15000);
+
+    const onFocus = () => fetchData(true);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') fetchData(true);
+    };
+
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisible);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
   }, []);
 
   const tabs = [
@@ -147,7 +161,7 @@ function MainDashboard() {
             <span>Canton DevNet</span>
             {devnet.connected && <span className="contract-count">{devnet.totalContracts} contracts</span>}
             {lastUpdated && <span className="last-updated">{lastUpdated.toLocaleTimeString()}</span>}
-            <button className="refresh-btn" onClick={fetchData} title="Refresh data">↻</button>
+            <button className="refresh-btn" onClick={() => fetchData(true)} title="Refresh data">↻</button>
           </div>
           <Link to="/demo" className="live-demo-btn">⚡ Live Demo</Link>
         </div>
