@@ -167,10 +167,10 @@ aml_network_demo = script do
       wasCorrect = True
       verifier = bankB
 
-  repB2 <- submit bankB do
+  repB2 <- submit bankA do
     exerciseCmd repB UpdateReputation with
       wasCorrect = True
-      verifier = bankB
+      verifier = bankA
 
   (repScoreA, correctA, totalA) <- submit bankA do
     exerciseCmd repA2 GetReputation

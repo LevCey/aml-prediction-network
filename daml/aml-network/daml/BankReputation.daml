@@ -24,7 +24,8 @@ template BankReputation
       controller verifier
       do
         -- Verifier must be in network
-        assertMsg "Verifier must be a network participant" (verifier `elem` networkParticipants || verifier == bank)
+        assertMsg "Verifier must be a network participant" (verifier `elem` networkParticipants)
+        assertMsg "Bank cannot verify its own reputation" (verifier /= bank)
         
         currentTime <- getTime
         let newTotal = totalPredictions + 1
