@@ -1,6 +1,13 @@
-const CANTON_API = process.env.CANTON_API_URL;
+const CANTON_API = process.env.BACKEND_URL || process.env.CANTON_API_URL;
 const PARTY_SUFFIX = process.env.CANTON_PARTY_SUFFIX || '';
+const API_KEY = process.env.API_KEY;
 const PKG = 'aml-network';
+
+function authHeaders(extra = {}) {
+  const h = { ...extra };
+  if (API_KEY) h['Authorization'] = `Bearer ${API_KEY}`;
+  return h;
+}
 
 const BANKS = [
   { key: 'Bank_A', userId: 'banka', name: 'Bank A' },
@@ -21,8 +28,8 @@ let marketCount = 47;
 
 async function cantonFetch(path, body, method = 'POST') {
   const opts = body
-    ? { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: AbortSignal.timeout(15000) }
-    : { method, signal: AbortSignal.timeout(8000) };
+    ? { method, headers: authHeaders({ 'Content-Type': 'application/json' }), body: JSON.stringify(body), signal: AbortSignal.timeout(15000) }
+    : { method, headers: authHeaders(), signal: AbortSignal.timeout(8000) };
   const r = await fetch(`${CANTON_API}${path}`, opts);
   if (!r.ok) throw new Error(`Canton ${path} returned ${r.status}`);
   return r.json();

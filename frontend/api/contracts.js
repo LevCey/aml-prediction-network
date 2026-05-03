@@ -1,5 +1,12 @@
-const CANTON_API = process.env.CANTON_API_URL;
+const CANTON_API = process.env.BACKEND_URL || process.env.CANTON_API_URL;
 const PARTY = process.env.CANTON_PARTY;
+const API_KEY = process.env.API_KEY;
+
+function authHeaders(extra = {}) {
+  const h = { ...extra };
+  if (API_KEY) h['Authorization'] = `Bearer ${API_KEY}`;
+  return h;
+}
 
 const TIMEOUT_OFFSET = 8000;
 const TIMEOUT_CONTRACTS = 20000;
@@ -82,7 +89,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const offsetRes = await fetch(`${CANTON_API}/v2/state/ledger-end`, { signal: AbortSignal.timeout(TIMEOUT_OFFSET) });
+    const offsetRes = await fetch(`${CANTON_API}/v2/state/ledger-end`, { headers: authHeaders(), signal: AbortSignal.timeout(TIMEOUT_OFFSET) });
     if (!offsetRes.ok) throw new Error(`Ledger endpoint returned ${offsetRes.status}`);
     const { offset } = await offsetRes.json();
 
@@ -98,7 +105,7 @@ export default async function handler(req, res) {
 
     const acRes = await fetch(`${CANTON_API}/v2/state/active-contracts`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ filter, verbose: true, activeAtOffset: offset }),
       signal: AbortSignal.timeout(TIMEOUT_CONTRACTS),
     });
