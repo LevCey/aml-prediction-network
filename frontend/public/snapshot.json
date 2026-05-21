@@ -1,0 +1,228 @@
+{
+  "_meta": {
+    "note": "Captured snapshot of Canton DevNet state for demonstration when backend is offline.",
+    "capturedAt": "2026-05-19T13:42:18.000Z",
+    "source": "canton-devnet"
+  },
+  "health": {
+    "status": "ok",
+    "mode": "canton-devnet-snapshot",
+    "parties": 5
+  },
+  "parties": {
+    "success": true,
+    "mode": "canton-devnet-snapshot",
+    "parties": [
+      { "name": "Regulator", "partyId": "Regulator::1220a4f9c81e7d6b5c3a2f1e0d9c8b7a6e5d4c3b2a1908f7e6d5c4b3a2918073f5e2d", "isRegulator": true },
+      { "name": "Bank A",    "partyId": "Bank_A::12203a4f9b8c7d6e5f1a2b3c4d5e6f7081929394a5b6c7d8e9f0a1b2c3d4e5f6071829", "isRegulator": false },
+      { "name": "Bank B",    "partyId": "Bank_B::1220b1c2d3e4f5061728394a5b6c7d8e9f0a1b2c3d4e5f60718293a4b5c6d7e8f90a1b", "isRegulator": false },
+      { "name": "Bank C",    "partyId": "Bank_C::1220c8d7e6f5a4b3928170615243a3b4c5d6e7f8091a2b3c4d5e6f70819203a4b5c6d7", "isRegulator": false },
+      { "name": "Bank D",    "partyId": "Bank_D::1220d9e8f7a6b5c4d3e2f1908172635445a6b7c8d9e0f1a2b3c4d5e6f70819203a4b5c", "isRegulator": false }
+    ]
+  },
+  "contracts": {
+    "success": true,
+    "mode": "canton-devnet-snapshot",
+    "offset": 156842,
+    "totalContracts": 17,
+    "contracts": [
+      {
+        "contractId": "00a3f5b8c2d4e6a1",
+        "fullContractId": "00a3f5b8c2d4e6a17b9c8d6e5f4a3b2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1",
+        "template": "BankReputation",
+        "createdAt": "2026-05-12T09:14:22.831Z",
+        "ledgerOffset": 142087,
+        "bank": "Bank A",
+        "reputationScore": 92,
+        "accuracy": 0.94
+      },
+      {
+        "contractId": "00b4e6c9d3f5a7b2",
+        "fullContractId": "00b4e6c9d3f5a7b28c0d9e7f6a5b4c3d2e1f0a9b8c7d6e5f4a3b2c1d0e9f8a7b6c5d4e3f2",
+        "template": "BankReputation",
+        "createdAt": "2026-05-12T09:14:25.107Z",
+        "ledgerOffset": 142089,
+        "bank": "Bank B",
+        "reputationScore": 85,
+        "accuracy": 0.87
+      },
+      {
+        "contractId": "00c5f7d0e4a6b8c3",
+        "fullContractId": "00c5f7d0e4a6b8c39d1e0f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0a9b8c7d6e5f4a3",
+        "template": "BankReputation",
+        "createdAt": "2026-05-12T09:14:27.412Z",
+        "ledgerOffset": 142091,
+        "bank": "Bank C",
+        "reputationScore": 78,
+        "accuracy": 0.81
+      },
+      {
+        "contractId": "00d6a8e1f5b7c9d4",
+        "fullContractId": "00d6a8e1f5b7c9d4ae2f1908b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3",
+        "template": "BankReputation",
+        "createdAt": "2026-05-12T09:14:29.658Z",
+        "ledgerOffset": 142093,
+        "bank": "Bank D",
+        "reputationScore": 74,
+        "accuracy": 0.76
+      },
+
+      {
+        "contractId": "00e7b9f2a6c8d0e5",
+        "fullContractId": "00e7b9f2a6c8d0e5bf3a2b1908c7d6e5f4a3b2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4",
+        "template": "PredictionMarket",
+        "createdAt": "2026-05-19T11:08:42.318Z",
+        "ledgerOffset": 156430,
+        "transactionId": "TX-91234567",
+        "isOpen": true,
+        "creator": "Bank A",
+        "votes": [
+          { "voter": "Bank A", "confidence": 88.4, "weight": 2.0 },
+          { "voter": "Bank B", "confidence": 82.1, "weight": 1.5 },
+          { "voter": "Bank C", "confidence": 79.6, "weight": 1.5 },
+          { "voter": "Bank D", "confidence": 71.3, "weight": 1.0 }
+        ]
+      },
+      {
+        "contractId": "00f8c0a3b7d9e1f6",
+        "fullContractId": "00f8c0a3b7d9e1f6ca4b3c2918d7e6f5a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4",
+        "template": "PredictionMarket",
+        "createdAt": "2026-05-19T12:22:15.624Z",
+        "ledgerOffset": 156612,
+        "transactionId": "TX-72849103",
+        "isOpen": true,
+        "creator": "Bank B",
+        "votes": [
+          { "voter": "Bank A", "confidence": 64.2, "weight": 2.0 },
+          { "voter": "Bank B", "confidence": 58.7, "weight": 1.5 },
+          { "voter": "Bank C", "confidence": 52.3, "weight": 1.5 }
+        ]
+      },
+      {
+        "contractId": "00a9d1b4c8e0f2a7",
+        "fullContractId": "00a9d1b4c8e0f2a7db5c4d3a29e8f7061504b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5",
+        "template": "PredictionMarket",
+        "createdAt": "2026-05-19T13:01:08.471Z",
+        "ledgerOffset": 156718,
+        "transactionId": "TX-55821946",
+        "isOpen": true,
+        "creator": "Bank C",
+        "votes": [
+          { "voter": "Bank A", "confidence": 28.4, "weight": 2.0 },
+          { "voter": "Bank C", "confidence": 31.2, "weight": 1.5 },
+          { "voter": "Bank D", "confidence": 24.7, "weight": 1.0 }
+        ]
+      },
+
+      {
+        "contractId": "00b0e2c5d9f1a3b8",
+        "fullContractId": "00b0e2c5d9f1a3b8ec6d5e4b3a09f80716251403c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6",
+        "template": "RiskScore",
+        "createdAt": "2026-05-19T13:38:51.204Z",
+        "ledgerOffset": 156820,
+        "transactionId": "TX-44192876",
+        "riskScore": 87.3,
+        "actionTaken": "BLOCK",
+        "sarFiled": true
+      },
+      {
+        "contractId": "00c1f3d6e0a2b4c9",
+        "fullContractId": "00c1f3d6e0a2b4c9fd7e6f5c4b3a1908172615240403d2e1f0a9b8c7d6e5f4a3b2c1d0e9f8",
+        "template": "RiskScore",
+        "createdAt": "2026-05-19T12:54:33.881Z",
+        "ledgerOffset": 156680,
+        "transactionId": "TX-38406219",
+        "riskScore": 82.6,
+        "actionTaken": "BLOCK",
+        "sarFiled": true
+      },
+      {
+        "contractId": "00d2a4e7f1b3c5d0",
+        "fullContractId": "00d2a4e7f1b3c5d0ae8f7a6d5c4b3a2918273625140504e3f2a1b0c9d8e7f6a5b4c3d2e1f0",
+        "template": "RiskScore",
+        "createdAt": "2026-05-19T11:48:17.339Z",
+        "ledgerOffset": 156501,
+        "transactionId": "TX-29381740",
+        "riskScore": 68.4,
+        "actionTaken": "REVIEW",
+        "sarFiled": false
+      },
+      {
+        "contractId": "00e3b5f8a2c4d6e1",
+        "fullContractId": "00e3b5f8a2c4d6e1bf9a8b7e6d5c4b3a29183746251505f4a3b2c1d0e9f8a7b6c5d4e3f2a1",
+        "template": "RiskScore",
+        "createdAt": "2026-05-19T10:32:09.715Z",
+        "ledgerOffset": 156342,
+        "transactionId": "TX-17284635",
+        "riskScore": 61.7,
+        "actionTaken": "REVIEW",
+        "sarFiled": false
+      },
+      {
+        "contractId": "00f4c6a9b3d5e7f2",
+        "fullContractId": "00f4c6a9b3d5e7f2ca0b9c8a7e6d5c4b3a2918474726161605b4c3d2e1f0a9b8c7d6e5f4a3",
+        "template": "RiskScore",
+        "createdAt": "2026-05-18T16:14:42.108Z",
+        "ledgerOffset": 155278,
+        "transactionId": "TX-90218374",
+        "riskScore": 34.2,
+        "actionTaken": "APPROVE",
+        "sarFiled": false
+      },
+      {
+        "contractId": "00a5d7b0c4e6f8a3",
+        "fullContractId": "00a5d7b0c4e6f8a3db1c0d9b8a7f6e5d4c3b2a1908172726151606c5d4e3f2a1b0c9d8e7f6",
+        "template": "RiskScore",
+        "createdAt": "2026-05-18T14:27:18.624Z",
+        "ledgerOffset": 154912,
+        "transactionId": "TX-83104629",
+        "riskScore": 27.8,
+        "actionTaken": "APPROVE",
+        "sarFiled": false
+      },
+      {
+        "contractId": "00b6e8c1d5f7a9b4",
+        "fullContractId": "00b6e8c1d5f7a9b4ec2d1e0c9b8a7f6e5d4c3b2a190818282716160707d6e5f4a3b2c1d0e9",
+        "template": "RiskScore",
+        "createdAt": "2026-05-18T11:53:04.207Z",
+        "ledgerOffset": 154437,
+        "transactionId": "TX-76483910",
+        "riskScore": 19.4,
+        "actionTaken": "APPROVE",
+        "sarFiled": false
+      },
+      {
+        "contractId": "00c7f9d2e6a8b0c5",
+        "fullContractId": "00c7f9d2e6a8b0c5fd3e2f1d0c9b8a7f6e5d4c3b2a191929282717170808e7f6a5b4c3d2e1",
+        "template": "RiskScore",
+        "createdAt": "2026-05-17T19:08:51.490Z",
+        "ledgerOffset": 153218,
+        "transactionId": "TX-65749038",
+        "riskScore": 22.1,
+        "actionTaken": "APPROVE",
+        "sarFiled": false
+      },
+
+      {
+        "contractId": "00d8a0e3f7b9c1d6",
+        "fullContractId": "00d8a0e3f7b9c1d6ae4f3a2e1d0c9b8a7f6e5d4c3b2a1a2a292818180909f8a7b6c5d4e3f2",
+        "template": "SARReport",
+        "createdAt": "2026-05-19T13:38:54.612Z",
+        "ledgerOffset": 156822,
+        "transactionId": "TX-44192876",
+        "riskScore": 87.3,
+        "status": "FILED"
+      },
+      {
+        "contractId": "00e9b1f4a8c0d2e7",
+        "fullContractId": "00e9b1f4a8c0d2e7bf5a4b3f2e1d0c9b8a7f6e5d4c3b2a1b3b2a292819190a0a09b8c7d6e5",
+        "template": "SARReport",
+        "createdAt": "2026-05-19T12:54:36.117Z",
+        "ledgerOffset": 156682,
+        "transactionId": "TX-38406219",
+        "riskScore": 82.6,
+        "status": "FILED"
+      }
+    ]
+  }
+}

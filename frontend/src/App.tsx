@@ -36,7 +36,10 @@ interface Party {
   isRegulator: boolean;
 }
 
+type DevnetMode = 'live' | 'snapshot' | 'connecting';
+
 interface DevnetState {
+  mode: DevnetMode;
   connected: boolean;
   totalContracts: number;
   contracts: Contract[];
@@ -94,27 +97,43 @@ export default App;
 
 function MainDashboard() {
   const [selectedTab, setSelectedTab] = useState<'dashboard' | 'market' | 'patterns' | 'regulator'>('dashboard');
-  const [devnet, setDevnet] = useState<DevnetState>({ connected: false, totalContracts: 0, contracts: [], parties: [] });
+  const [devnet, setDevnet] = useState<DevnetState>({ mode: 'connecting', connected: false, totalContracts: 0, contracts: [], parties: [] });
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   const fetchData = async (fresh = false) => {
     const suffix = fresh ? `?fresh=1&t=${Date.now()}` : '';
+    const ok = (r: Response) => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`));
     try {
       const [health, contracts, parties] = await Promise.all([
-        fetch(`/api/health${suffix}`, { cache: 'no-store' }).then(r => r.json()),
-        fetch(`/api/contracts${suffix}`, { cache: 'no-store' }).then(r => r.json()),
-        fetch(`/api/parties${suffix}`, { cache: 'no-store' }).then(r => r.json()),
+        fetch(`/api/health${suffix}`, { cache: 'no-store' }).then(ok),
+        fetch(`/api/contracts${suffix}`, { cache: 'no-store' }).then(ok),
+        fetch(`/api/parties${suffix}`, { cache: 'no-store' }).then(ok),
       ]);
+      if (health.status !== 'ok') throw new Error('health not ok');
       setDevnet({
-        connected: health.status === 'ok',
+        mode: 'live',
+        connected: true,
         totalContracts: contracts.totalContracts || 0,
         contracts: contracts.contracts || [],
         parties: parties.parties || [],
       });
       setLastUpdated(new Date());
     } catch {
-      setDevnet({ connected: false, totalContracts: 0, contracts: [], parties: [] });
+      // Live backend unavailable → fall back to captured DevNet snapshot
+      try {
+        const snap = await fetch(`/snapshot.json?t=${Date.now()}`, { cache: 'no-store' }).then(r => r.json());
+        setDevnet({
+          mode: 'snapshot',
+          connected: false,
+          totalContracts: snap?.contracts?.totalContracts || 0,
+          contracts: snap?.contracts?.contracts || [],
+          parties: snap?.parties?.parties || [],
+        });
+        setLastUpdated(new Date());
+      } catch {
+        setDevnet({ mode: 'connecting', connected: false, totalContracts: 0, contracts: [], parties: [] });
+      }
     }
     setLoading(false);
   };
@@ -156,10 +175,10 @@ function MainDashboard() {
           </div>
         </div>
         <div className="header-right">
-          <div className="devnet-status">
-            <span className={`status-dot ${devnet.connected ? 'connected' : ''}`}></span>
-            <span>Canton DevNet</span>
-            {devnet.connected && <span className="contract-count">{devnet.totalContracts} contracts</span>}
+          <div className="devnet-status" title={devnet.mode === 'snapshot' ? 'Backend offline — showing captured DevNet state' : devnet.mode === 'live' ? 'Connected to Canton DevNet' : 'Connecting to Canton DevNet…'}>
+            <span className={`status-dot ${devnet.mode === 'live' ? 'connected' : devnet.mode === 'snapshot' ? 'snapshot' : ''}`}></span>
+            <span>{devnet.mode === 'snapshot' ? 'Demo Snapshot' : 'Canton DevNet'}</span>
+            {(devnet.mode === 'live' || devnet.mode === 'snapshot') && <span className="contract-count">{devnet.totalContracts} contracts</span>}
             {lastUpdated && <span className="last-updated">{lastUpdated.toLocaleTimeString()}</span>}
             <button className="refresh-btn" onClick={() => fetchData(true)} title="Refresh data">↻</button>
           </div>
@@ -247,7 +266,7 @@ function DashboardView({ devnet, loading }: { devnet: DevnetState; loading: bool
         })}
       </div>
 
-      <h3>Recent Risk Assessments {loading && '(loading...)'} <span className="live-feed-badge">● Live Feed</span></h3>
+      <h3>Recent Risk Assessments {loading && '(loading...)'} <span className={`live-feed-badge ${devnet.mode === 'snapshot' ? 'snapshot' : ''}`}>● {devnet.mode === 'snapshot' ? 'Snapshot' : 'Live Feed'}</span></h3>
       <div className="contracts-list">
         {assessments.length > 0 ? assessments.slice(0, 10).map((c, i) => {
           const score = c.riskScore ?? 0;
@@ -273,7 +292,7 @@ function DashboardView({ devnet, loading }: { devnet: DevnetState; loading: bool
         }) : (
           <div className="contract-card">
             <div className="contract-details">
-              <span>{devnet.connected ? 'No active risk assessments on DevNet' : 'Connecting to DevNet...'}</span>
+              <span>{devnet.mode === 'connecting' ? 'Connecting to DevNet...' : 'No active risk assessments'}</span>
             </div>
           </div>
         )}
@@ -354,7 +373,7 @@ function PredictionMarketView({ devnet }: { devnet: DevnetState }) {
         </>
       )}
 
-      <h3>Resolved Assessments <span className="live-feed-badge">● Live Feed</span></h3>
+      <h3>Resolved Assessments <span className={`live-feed-badge ${devnet.mode === 'snapshot' ? 'snapshot' : ''}`}>● {devnet.mode === 'snapshot' ? 'Snapshot' : 'Live Feed'}</span></h3>
       <div className="resolved-grid">
         {sortedScores.length > 0 ? sortedScores.slice(0, 14).map((m, i) => {
           const score = m.riskScore ?? 0;
@@ -374,7 +393,7 @@ function PredictionMarketView({ devnet }: { devnet: DevnetState }) {
           );
         }) : (
           <div className="contract-card">
-            <div className="contract-details"><span>{devnet.connected ? 'No resolved assessments yet' : 'Connecting to DevNet...'}</span></div>
+            <div className="contract-details"><span>{devnet.mode === 'connecting' ? 'Connecting to DevNet...' : 'No resolved assessments yet'}</span></div>
           </div>
         )}
       </div>
@@ -496,7 +515,7 @@ function RegulatorView({ devnet }: { devnet: DevnetState }) {
       </div>
 
       <div className="regulator-section">
-        <h3>📋 On-Chain Audit Log <span className="live-feed-badge">● Live</span></h3>
+        <h3>📋 On-Chain Audit Log <span className={`live-feed-badge ${devnet.mode === 'snapshot' ? 'snapshot' : ''}`}>● {devnet.mode === 'snapshot' ? 'Snapshot' : 'Live'}</span></h3>
         <p className="section-subtitle">Immutable record of risk assessments, market closures, and enforcement decisions</p>
         <div className="audit-log">
           {auditEntries.length > 0 ? auditEntries.map((log, i) => (
@@ -508,7 +527,7 @@ function RegulatorView({ devnet }: { devnet: DevnetState }) {
             </div>
           )) : (
             <div className="audit-entry">
-              <span className="audit-detail">{devnet.connected ? 'No audit entries yet' : 'Connecting to DevNet...'}</span>
+              <span className="audit-detail">{devnet.mode === 'connecting' ? 'Connecting to DevNet...' : 'No audit entries yet'}</span>
             </div>
           )}
         </div>
@@ -525,7 +544,11 @@ function RegulatorView({ devnet }: { devnet: DevnetState }) {
         </h3>
         {showVerification && (
           <div className="verification-content">
-            <p className="verification-note">Live connection to Canton DevNet — Party IDs are cryptographically unique</p>
+            <p className="verification-note">
+              {devnet.mode === 'snapshot'
+                ? 'Captured from Canton DevNet — Party IDs are cryptographically unique'
+                : 'Live connection to Canton DevNet — Party IDs are cryptographically unique'}
+            </p>
             <div className="verification-grid">
               {devnet.parties.map((party, i) => (
                 <div key={i} className="verification-item">
@@ -536,7 +559,7 @@ function RegulatorView({ devnet }: { devnet: DevnetState }) {
               ))}
             </div>
             <div className="verification-footer">
-              <span className="verification-badge">✓ Canton DevNet</span>
+              <span className="verification-badge">{devnet.mode === 'snapshot' ? '📸 DevNet Snapshot' : '✓ Canton DevNet'}</span>
               <span className="verification-badge">✓ Canton Network</span>
               <span className="verification-badge">✓ {devnet.parties.length} Parties Active</span>
             </div>
