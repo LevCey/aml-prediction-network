@@ -167,6 +167,15 @@ Daml contracts, weighted aggregation, reputation scoring, demo environment, DevN
 **Phase 2: Mechanism Hardening** (Current)
 Adversarial testing, expanded participant simulation, regulator feedback integration
 
+**Phase 2.5: Private AI Inference Layer** (Grant scope — pending)
+QVAC-powered local AI inference module replacing manual/heuristic risk scoring.
+Each participating institution runs a QVAC AML Mesh node consisting of:
+- Local transaction pattern analyzer (QVAC Fabric LLM on Bare runtime)
+- Narrative classification module (QVAC RAG over case file corpus)
+- Score calibration via on-device LoRA fine-tuning
+- Canton bridge (existing Daml contracts unchanged)
+Raw transaction data never leaves the institution. Open source Apache 2.0.
+
 **Phase 3: Generalization**
 Federated model-assisted belief generation, adaptive hypothesis markets, extension beyond AML to sanctions, credit risk, and market abuse signaling
 
